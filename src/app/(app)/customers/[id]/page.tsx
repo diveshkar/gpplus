@@ -40,6 +40,9 @@ export default async function CustomerProfilePage({
   const expected = expectedBalance(transactions);
   const hasDrift = Math.abs(expected - customer.points_balance) > 0.0001;
   const worth = customer.points_balance * config.redemption_value;
+  const canRedeem =
+    customer.points_balance >= config.redemption_threshold;
+  const firstName = customer.full_name.split(" ")[0];
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -78,6 +81,35 @@ export default async function CustomerProfilePage({
             match the sum of this customer&apos;s activity (
             {formatPoints(expected)}). Please review before making changes.
           </p>
+        </div>
+      ) : null}
+
+      {/* Threshold reached, a small human touch */}
+      {canRedeem ? (
+        <div className="flex items-start gap-3 rounded-[var(--radius-lg)] border border-brand/20 bg-brand-soft px-4 py-3.5">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            className="mt-0.5 h-5 w-5 shrink-0 text-brand"
+            aria-hidden
+          >
+            <path
+              d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7ZM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <div>
+            <p className="text-sm font-semibold text-brand-strong">
+              {firstName} can redeem a reward
+            </p>
+            <p className="mt-0.5 text-sm text-brand-strong/80">
+              They have crossed {formatPoints(config.redemption_threshold)}{" "}
+              points. Nice work keeping them coming back.
+            </p>
+          </div>
         </div>
       ) : null}
 
