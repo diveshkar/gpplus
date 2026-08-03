@@ -67,9 +67,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except static assets and image files. Auth checks for
-  // API routes happen inside the routes themselves.
+  // Run on everything except static assets, images, and video. The login video
+  // must load before sign-in, so media extensions are excluded here. Auth checks
+  // for API routes happen inside the routes themselves.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|mp4|webm)$).*)",
   ],
 };

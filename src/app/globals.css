@@ -1,25 +1,26 @@
 @import "tailwindcss";
 
 /*
-  GP+ design foundation.
-  A warm, confident identity drawn from the logo: deep crimson lettering on a
-  black ring over paper white. This sets tokens only. The full screen-by-screen
-  polish and the animated loading component belong to Phase 7.
+  GP+ design system.
+  A crisp, premium identity in red and black. The app interior is light for
+  all-day readability at the counter; the login is a dark cinematic landing.
+  Strong contrast, generous spacing, and quiet motion throughout.
 */
 
 :root {
   /* Surfaces */
-  --background: #faf8f6; /* warm paper */
+  --background: #f5f4f2; /* page */
   --surface: #ffffff; /* cards, panels */
-  --foreground: #1c1917; /* warm near-black ink */
-  --muted: #78716c; /* secondary text */
-  --border: #e7e2dc; /* hairlines */
+  --foreground: #0f0f0f; /* near-black ink, strong contrast */
+  --muted: #6b6b6b; /* secondary text */
+  --border: #e7e5e2; /* hairlines */
 
-  /* Brand crimson, scaled from the logo */
-  --brand: #9b1b1b;
-  --brand-strong: #7f1717;
-  --brand-soft: #f6e7e7;
+  /* Brand: a confident red drawn from the logo, plus near-black */
+  --brand: #c1121f;
+  --brand-strong: #9a0e18;
+  --brand-soft: #fbeaeb;
   --brand-contrast: #ffffff;
+  --ink: #0f0f0f;
 
   /* Feedback */
   --success: #15803d;
@@ -27,7 +28,7 @@
   --danger: #b91c1c;
 
   /* Shape */
-  --radius: 0.75rem;
+  --radius: 0.9rem;
 }
 
 @theme inline {
@@ -41,13 +42,14 @@
   --color-brand-strong: var(--brand-strong);
   --color-brand-soft: var(--brand-soft);
   --color-brand-contrast: var(--brand-contrast);
+  --color-ink: var(--ink);
 
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
 
   --font-sans: var(--font-geist-sans);
-  --font-heading: var(--font-geist-sans);
+  --font-heading: var(--font-sora);
   --font-mono: var(--font-geist-mono);
 
   --radius-lg: var(--radius);
@@ -70,4 +72,60 @@ body {
 ::selection {
   background: var(--brand-soft);
   color: var(--brand-strong);
+}
+
+/* Premium card depth, kept subtle. */
+.shadow-card {
+  box-shadow:
+    0 1px 2px rgba(15, 15, 15, 0.04),
+    0 12px 28px -18px rgba(15, 15, 15, 0.22);
+}
+
+/* Quiet motion. Respects reduced-motion preferences. */
+@keyframes gp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes gp-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gp-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-fade-up {
+  animation: gp-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: gp-fade-in 0.5s ease-out both;
+}
+
+.animate-spin-slow {
+  animation: gp-spin 1.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in {
+    animation: none;
+  }
+  .animate-spin-slow {
+    animation-duration: 3s;
+  }
 }

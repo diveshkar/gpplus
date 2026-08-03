@@ -169,7 +169,7 @@ export function AppShell({
       <button
         type="button"
         onClick={openScan}
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-semibold text-brand-contrast transition-colors hover:bg-brand-strong"
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-brand-contrast shadow-sm shadow-brand/25 transition-all hover:bg-brand-strong active:scale-[0.98]"
       >
         <ScanIcon />
         Scan a card
@@ -268,7 +268,10 @@ export function AppShell({
           </button>
         </header>
 
-        <main className="mx-auto w-full max-w-4xl flex-1 px-5 py-8">
+        <main
+          key={pathname}
+          className="mx-auto w-full max-w-4xl flex-1 animate-fade-up px-5 py-8"
+        >
           {children}
         </main>
       </div>

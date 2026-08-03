@@ -26,11 +26,28 @@ function monthLabel(year: number, month: number): string {
   }).format(new Date(year, month - 1, 1));
 }
 
-function StatCard({ label, value }: { label: string; value: string }) {
+function StatCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: string;
+  accent: "brand" | "neutral";
+}) {
   return (
     <div className={`${card} p-5`}>
-      <p className="text-sm text-muted">{label}</p>
-      <p className="mt-1 font-heading text-2xl font-semibold tracking-tight text-foreground">
+      <div className="flex items-center gap-2">
+        <span
+          className={[
+            "h-2 w-2 rounded-full",
+            accent === "brand" ? "bg-brand" : "bg-foreground/40",
+          ].join(" ")}
+          aria-hidden
+        />
+        <p className="text-sm text-muted">{label}</p>
+      </div>
+      <p className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
         {value}
       </p>
     </div>
@@ -82,17 +99,30 @@ export default async function DashboardPage({
         </p>
       </section>
 
-      {/* Liability headline */}
-      <section className={`${card} bg-brand-soft/40 p-6`}>
-        <p className="text-sm text-muted">Points liability across all customers</p>
-        <p className="mt-1 font-heading text-3xl font-semibold tracking-tight text-foreground">
-          {formatPoints(liabilityPoints)}
-          <span className="ml-1.5 text-base font-normal text-muted">points</span>
-        </p>
-        <p className="mt-1 text-sm text-muted">
-          Worth {formatLKR(liabilityWorth)} in product owed, at the current
-          redemption value.
-        </p>
+      {/* Liability hero */}
+      <section className="relative overflow-hidden rounded-[var(--radius-lg)] bg-ink p-6 text-white shadow-card sm:p-7">
+        <div
+          className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand/30 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative">
+          <p className="text-sm text-white/60">
+            Points liability across all customers
+          </p>
+          <p className="mt-2 font-heading text-4xl font-semibold tracking-tight">
+            {formatPoints(liabilityPoints)}
+            <span className="ml-2 text-lg font-normal text-white/50">
+              points
+            </span>
+          </p>
+          <p className="mt-2 text-sm text-white/70">
+            Worth{" "}
+            <span className="font-medium text-white">
+              {formatLKR(liabilityWorth)}
+            </span>{" "}
+            in product owed, at the current redemption value.
+          </p>
+        </div>
       </section>
 
       {/* Reports */}
@@ -116,10 +146,12 @@ export default async function DashboardPage({
           <StatCard
             label="Points issued"
             value={formatPoints(summary.issued)}
+            accent="brand"
           />
           <StatCard
             label="Points redeemed"
             value={formatPoints(summary.redeemed)}
+            accent="neutral"
           />
         </div>
       </section>
@@ -130,9 +162,13 @@ export default async function DashboardPage({
           Top customers this period
         </h2>
         {topCustomers.length === 0 ? (
-          <div className={`${card} px-6 py-8 text-center`}>
-            <p className="text-sm text-muted">
-              No points were earned in {monthLabel(year, month)}.
+          <div className={`${card} px-6 py-10 text-center`}>
+            <p className="text-sm font-medium text-foreground">
+              Nothing earned yet
+            </p>
+            <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
+              No points were earned in {monthLabel(year, month)}. Log a sale to
+              see it here.
             </p>
           </div>
         ) : (
@@ -141,10 +177,17 @@ export default async function DashboardPage({
               <Link
                 key={row.customer_id}
                 href={`/customers/${row.customer_id}`}
-                className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-background"
+                className="flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-background"
               >
                 <div className="flex items-center gap-3">
-                  <span className="w-5 text-sm font-semibold text-muted tabular-nums">
+                  <span
+                    className={[
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold tabular-nums",
+                      index === 0
+                        ? "bg-brand text-white"
+                        : "bg-brand-soft text-brand-strong",
+                    ].join(" ")}
+                  >
                     {index + 1}
                   </span>
                   <span className="text-sm font-medium text-foreground">
