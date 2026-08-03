@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { logout } from "@/lib/auth/actions";
 import { ScanModal } from "@/components/shell/scan-modal";
+import type { PaintTypeOption } from "@/components/transactions/earn-form";
 
 type NavItem = {
   href: string;
@@ -103,9 +104,11 @@ function isActive(pathname: string, href: string): boolean {
 
 export function AppShell({
   userEmail,
+  paintTypes,
   children,
 }: {
   userEmail: string;
+  paintTypes: PaintTypeOption[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -244,7 +247,12 @@ export function AppShell({
         </main>
       </div>
 
-      <ScanModal open={scanOpen} onClose={() => setScanOpen(false)} />
+      {scanOpen ? (
+        <ScanModal
+          onClose={() => setScanOpen(false)}
+          paintTypes={paintTypes}
+        />
+      ) : null}
     </div>
   );
 }

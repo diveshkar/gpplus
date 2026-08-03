@@ -5,13 +5,16 @@ const CUSTOMER_WITH_TYPE_SELECT =
   "id, full_name, address, date_of_birth, phone_number, default_paint_type_id, barcode_id, points_balance, created_at, updated_at, default_paint_type:paint_types(name)";
 
 /**
- * Paint types for the customer-type dropdown, sorted by name.
+ * Paint types for the dropdowns, sorted by name. Includes the earning rate so
+ * the earn form can show a live points preview.
  */
-export async function getPaintTypes(): Promise<Pick<PaintType, "id" | "name">[]> {
+export async function getPaintTypes(): Promise<
+  Pick<PaintType, "id" | "name" | "earning_percentage">[]
+> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("paint_types")
-    .select("id, name")
+    .select("id, name, earning_percentage")
     .order("name", { ascending: true });
 
   if (error) throw error;
@@ -76,21 +79,3 @@ export async function getCustomerById(
   return (data as unknown as CustomerWithPaintType) ?? null;
 }
 
-/**
- * Look up a customer id by the exact barcode on their card. Used by the scan
- * flow. Returns null when no card matches, which is the signal to ask whether
- * this is a new or an existing customer.
- */
-export async function findCustomerIdByBarcode(
-  barcode: string,
-): Promise<string | null> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("customers")
-    .select("id")
-    .eq("barcode_id", barcode)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data?.id ?? null;
-}

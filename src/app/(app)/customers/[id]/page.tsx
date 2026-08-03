@@ -1,8 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCustomerById } from "@/lib/customers/queries";
+import {
+  getCustomerTransactions,
+  expectedBalance,
+} from "@/lib/transactions/queries";
+import { TransactionList } from "@/components/transactions/transaction-list";
 import { formatDate, formatPoints } from "@/lib/format";
-import { card } from "@/lib/ui";
+import { btnPrimary, card } from "@/lib/ui";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -21,11 +26,17 @@ export default async function CustomerProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const customer = await getCustomerById(id);
+  const [customer, transactions] = await Promise.all([
+    getCustomerById(id),
+    getCustomerTransactions(id),
+  ]);
 
   if (!customer) {
     notFound();
   }
+
+  const expected = expectedBalance(transactions);
+  const hasDrift = Math.abs(expected - customer.points_balance) > 0.0001;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -55,8 +66,20 @@ export default async function CustomerProfilePage({
         </div>
       </div>
 
+      {/* Drift warning (Rule 6) */}
+      {hasDrift ? (
+        <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning">
+          <p className="font-medium">Balance needs a check</p>
+          <p className="mt-0.5">
+            The stored balance ({formatPoints(customer.points_balance)}) does not
+            match the sum of this customer&apos;s activity (
+            {formatPoints(expected)}). Please review before making changes.
+          </p>
+        </div>
+      ) : null}
+
       {/* Balance */}
-      <div className={`${card} flex items-center justify-between p-6`}>
+      <div className={`${card} flex flex-wrap items-center justify-between gap-4 p-6`}>
         <div>
           <p className="text-sm text-muted">Current balance</p>
           <p className="mt-1 font-heading text-3xl font-semibold tracking-tight text-foreground">
@@ -66,25 +89,15 @@ export default async function CustomerProfilePage({
             </span>
           </p>
         </div>
-        <span
-          className={[
-            "rounded-full px-3 py-1.5 text-xs font-medium",
-            customer.barcode_id
-              ? "bg-background text-muted"
-              : "bg-warning/10 text-warning",
-          ].join(" ")}
-        >
-          {customer.barcode_id ? "Card linked" : "No card linked"}
-        </span>
+        <Link href={`/customers/${customer.id}/earn`} className={btnPrimary}>
+          Add points
+        </Link>
       </div>
 
       {/* Details */}
       <div className={`${card} px-6 py-2`}>
         <div className="divide-y divide-border">
-          <DetailRow
-            label="Phone"
-            value={customer.phone_number ?? "Not set"}
-          />
+          <DetailRow label="Phone" value={customer.phone_number ?? "Not set"} />
           <DetailRow
             label="Date of birth"
             value={formatDate(customer.date_of_birth)}
@@ -97,15 +110,20 @@ export default async function CustomerProfilePage({
         </div>
       </div>
 
-      {/* History placeholder for Phase 3 */}
-      <div className={`${card} flex flex-col items-center gap-1 px-6 py-10 text-center`}>
-        <p className="text-sm font-medium text-foreground">
-          No activity yet
-        </p>
-        <p className="max-w-xs text-sm text-muted">
-          Earning and redeeming points arrives in the next phase. Their full
-          history will show here.
-        </p>
+      {/* History */}
+      <div className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-foreground">Activity</h2>
+        {transactions.length === 0 ? (
+          <div className={`${card} flex flex-col items-center gap-1 px-6 py-10 text-center`}>
+            <p className="text-sm font-medium text-foreground">No activity yet</p>
+            <p className="max-w-xs text-sm text-muted">
+              Add points from a purchase, or scan their card to log a sale in one
+              step.
+            </p>
+          </div>
+        ) : (
+          <TransactionList transactions={transactions} customerId={customer.id} />
+        )}
       </div>
     </div>
   );
