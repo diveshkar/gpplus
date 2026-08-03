@@ -1,5 +1,10 @@
 # Paint Shop Loyalty System, Project Plan (v2)
 
+> **Build progress (as of 2026-08-03)**
+> Completed and tested on the stage environment: Phase 0, Phase 1, Phase 2, Phase 3, Phase 4.
+> Not started yet: Phase 5, Phase 6, Phase 7, Phase 8, Phase 9.
+> Production has not been created yet. All work so far runs against the stage Supabase project. Database migrations applied to stage so far, in order: `0001_init.sql`, `0002_grants.sql`, `0003_barcode_required.sql`, `0004_points_functions.sql`, `0005_redeem_function.sql`. These same files must be run against production, in the same order, at go-live.
+
 > **What changed since v1**
 > - **Balance** is a stored running number, kept correct by writing the balance and the row together in one database transaction, plus a quiet drift check that *warns* the admin when a stored balance disagrees with the customer's rows (it never silently changes anything).
 > - **Redemption value** is now a configurable setting (starts at 1 point = 1 LKR). Changing it re-values every customer's *remaining* points at their next redemption. Past redemptions are frozen forever, so products already given out are never affected.
@@ -48,7 +53,7 @@ These rules are stated once here and referenced by later phases, so the behaviou
 
 ---
 
-## Phase 0, Foundation Setup
+## Phase 0, Foundation Setup  [Completed on stage, 2026-08-03]
 
 Goal: get the empty skeleton running in both environments before any real feature is built.
 
@@ -64,7 +69,7 @@ Output of this phase: a working, empty app reachable at a free Vercel subdomain,
 
 ---
 
-## Phase 1, Database and Authentication
+## Phase 1, Database and Authentication  [Completed on stage, 2026-08-03]
 
 Goal: the data foundation and admin login.
 
@@ -96,7 +101,7 @@ Output of this phase: a secure, empty admin panel with nothing in it yet except 
 
 ---
 
-## Phase 2, Customer Management
+## Phase 2, Customer Management  [Completed on stage, 2026-08-03]
 
 Goal: admin can register and search customers, and link each customer to their physical loyalty card.
 
@@ -116,7 +121,7 @@ Output of this phase: admin can fully manage the customer list, every printed ca
 
 ---
 
-## Phase 3, Transactions and Points Engine
+## Phase 3, Transactions and Points Engine  [Completed on stage, 2026-08-03]
 
 Goal: the core loyalty logic.
 
@@ -139,7 +144,7 @@ Output of this phase: the shop can start earning points on real sales, correctly
 
 ---
 
-## Phase 4, Redemption Module
+## Phase 4, Redemption Module  [Completed on stage, 2026-08-03]
 
 Goal: turning points into a product, fully or partially, whatever the admin chooses, but only once the customer has crossed the redemption threshold. Points are never handed out as cash, only ever given as a product.
 
@@ -256,18 +261,18 @@ Output of this phase: the system is live and running the real loyalty program.
 
 ## Summary Table
 
-| Phase | Focus | Environment |
-|---|---|---|
-| 0 | Foundation setup | Stage and Prod |
-| 1 | Database and login | Stage and Prod |
-| 2 | Customer management | Stage first, then Prod |
-| 3 | Transactions and points | Stage first, then Prod |
-| 4 | Redemption | Stage first, then Prod |
-| 5 | Reports and dashboard | Stage first, then Prod |
-| 6 | On demand Excel export (full backup) | Stage first, then Prod |
-| 7 | Premium UI and UX | Stage first, then Prod |
-| 8 | Full rehearsal | Stage |
-| 9 | Go live | Prod |
+| Phase | Focus | Environment | Status |
+|---|---|---|---|
+| 0 | Foundation setup | Stage and Prod | Completed on stage |
+| 1 | Database and login | Stage and Prod | Completed on stage |
+| 2 | Customer management | Stage first, then Prod | Completed on stage |
+| 3 | Transactions and points | Stage first, then Prod | Completed on stage |
+| 4 | Redemption | Stage first, then Prod | Completed on stage |
+| 5 | Reports and dashboard | Stage first, then Prod | Not started |
+| 6 | On demand Excel export (full backup) | Stage first, then Prod | Not started |
+| 7 | Premium UI and UX | Stage first, then Prod | Not started |
+| 8 | Full rehearsal | Stage | Not started |
+| 9 | Go live | Prod | Not started |
 
 ## Cost Note
 
