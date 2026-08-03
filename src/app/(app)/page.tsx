@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { card } from "@/lib/ui";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -13,7 +15,6 @@ export default async function AdminHome() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Show the part of the email before the @ as a light, friendly touch.
   const name = user?.email?.split("@")[0] ?? "there";
 
   return (
@@ -23,17 +24,41 @@ export default async function AdminHome() {
           {greeting()}, {name}.
         </h1>
         <p className="mt-1.5 text-sm text-muted">
-          You are signed in to the GP+ loyalty desk. The counter tools land in
-          the next phase.
+          Scan a card to open a customer, or pick up where you left off.
         </p>
       </section>
 
-      <section className="rounded-[var(--radius-lg)] border border-border bg-surface p-6">
+      <section className="grid gap-4 sm:grid-cols-2">
+        <Link
+          href="/customers"
+          className={`${card} flex flex-col gap-1.5 p-6 transition-colors hover:border-brand`}
+        >
+          <span className="text-sm font-semibold text-foreground">
+            Customers
+          </span>
+          <span className="text-sm text-muted">
+            Search everyone, or open a profile to see their balance.
+          </span>
+        </Link>
+
+        <Link
+          href="/customers/new"
+          className={`${card} flex flex-col gap-1.5 p-6 transition-colors hover:border-brand`}
+        >
+          <span className="text-sm font-semibold text-foreground">
+            Add a customer
+          </span>
+          <span className="text-sm text-muted">
+            Register someone new and link their loyalty card.
+          </span>
+        </Link>
+      </section>
+
+      <section className={`${card} p-6`}>
         <h2 className="text-sm font-semibold text-foreground">Up next</h2>
         <p className="mt-1 text-sm text-muted">
-          Phase 2 brings customer registration, barcode card linking, and quick
-          scan lookup. For now the foundation is in place: secure login, the
-          database, and this protected admin shell.
+          Phase 3 brings earning and redeeming points. The Scan button will then
+          let you log a sale in one step, straight from any screen.
         </p>
       </section>
     </div>
