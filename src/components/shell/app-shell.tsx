@@ -16,11 +16,11 @@ type NavItem = {
   icon: React.ReactNode;
 };
 
-function HomeIcon() {
+function DashboardIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
       <path
-        d="M3 10.5 12 3l9 7.5M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"
+        d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"
         stroke="currentColor"
         strokeWidth="1.7"
         strokeLinecap="round"
@@ -107,7 +107,7 @@ function SettingsIcon() {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", icon: <HomeIcon /> },
+  { href: "/", label: "Dashboard", icon: <DashboardIcon /> },
   { href: "/customers", label: "Customers", icon: <PeopleIcon /> },
   { href: "/customers/new", label: "Add customer", icon: <AddPersonIcon /> },
   { href: "/settings", label: "Settings", icon: <SettingsIcon /> },
