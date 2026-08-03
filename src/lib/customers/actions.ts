@@ -49,6 +49,9 @@ export async function createCustomer(
   if (!values.default_paint_type_id) {
     return { error: "Please choose a customer type.", values };
   }
+  if (!values.barcode_id) {
+    return { error: "Please scan the customer's loyalty card.", values };
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase

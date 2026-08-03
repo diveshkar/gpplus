@@ -144,9 +144,10 @@ export function CustomerForm({
           id="barcode_id"
           name="barcode_id"
           type="text"
+          required
           autoComplete="off"
           defaultValue={state.values.barcode_id}
-          placeholder="Scan the card, or leave blank to add later"
+          placeholder="Scan the customer's card"
           className={input}
         />
         {initialBarcode ? (
@@ -155,7 +156,7 @@ export function CustomerForm({
           </p>
         ) : (
           <p className="text-xs text-muted">
-            Scanning the card here links it to this customer permanently.
+            Scan the card to link it to this customer permanently.
           </p>
         )}
       </div>
