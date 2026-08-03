@@ -29,17 +29,19 @@ export async function GET() {
 
   const supabase = createClient(url, anonKey);
 
-  // Touch the database with the lightest possible read. The `configuration`
-  // table is created in Phase 1; until then the request still reaches the
-  // database (which is all the keep-alive needs), so a "table not found"
-  // error is treated as a successful ping.
+  // Touch the database with the lightest possible read. The keep-alive uses the
+  // anonymous key, which is intentionally denied by Row Level Security, so any
+  // structured response (including "table not found" or "permission denied")
+  // still proves the database was reached. That is all the keep-alive needs.
   const { error } = await supabase
     .from("configuration")
     .select("*", { count: "exact", head: true });
 
-  const tableMissing = error?.code === "42P01"; // undefined_table
+  // Codes that still mean the database answered: undefined_table and
+  // insufficient_privilege.
+  const reached = !error || error.code === "42P01" || error.code === "42501";
 
-  if (error && !tableMissing) {
+  if (!reached) {
     return NextResponse.json(
       { ok: false, reason: error.message },
       { status: 502 },
@@ -49,8 +51,6 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     pingedAt: new Date().toISOString(),
-    note: tableMissing
-      ? "Database reached (configuration table not created yet — expected before Phase 1)."
-      : "Database reached.",
+    note: "Database reached.",
   });
 }
