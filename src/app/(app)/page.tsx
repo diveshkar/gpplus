@@ -10,6 +10,7 @@ import {
 import { formatLKR, formatPoints } from "@/lib/format";
 import { card } from "@/lib/ui";
 import { MonthSelector } from "@/components/reports/month-selector";
+import { ExportButton } from "@/components/reports/export-button";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -100,12 +101,15 @@ export default async function DashboardPage({
           <h2 className="font-heading text-lg font-semibold tracking-tight text-foreground">
             {monthLabel(year, month)}
           </h2>
-          <MonthSelector
-            year={year}
-            month={month}
-            currentYear={current.year}
-            currentMonth={current.month}
-          />
+          <div className="flex flex-wrap items-center gap-2">
+            <MonthSelector
+              year={year}
+              month={month}
+              currentYear={current.year}
+              currentMonth={current.month}
+            />
+            <ExportButton year={year} month={month} />
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
