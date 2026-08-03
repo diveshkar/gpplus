@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
+/*
+  GP+ design foundation.
+  A warm, confident identity drawn from the logo: deep crimson lettering on a
+  black ring over paper white. This sets tokens only. The full screen-by-screen
+  polish and the animated loading component belong to Phase 7.
+*/
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Surfaces */
+  --background: #faf8f6; /* warm paper */
+  --surface: #ffffff; /* cards, panels */
+  --foreground: #1c1917; /* warm near-black ink */
+  --muted: #78716c; /* secondary text */
+  --border: #e7e2dc; /* hairlines */
+
+  /* Brand crimson, scaled from the logo */
+  --brand: #9b1b1b;
+  --brand-strong: #7f1717;
+  --brand-soft: #f6e7e7;
+  --brand-contrast: #ffffff;
+
+  /* Feedback */
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #b91c1c;
+
+  /* Shape */
+  --radius: 0.75rem;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-muted: var(--muted);
+  --color-border: var(--border);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-contrast: var(--brand-contrast);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --font-sans: var(--font-geist-sans);
+  --font-heading: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --radius-lg: var(--radius);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* A single, consistent focus ring in the brand colour for accessibility. */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--brand-soft);
+  color: var(--brand-strong);
 }

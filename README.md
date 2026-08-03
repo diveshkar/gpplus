@@ -17,7 +17,7 @@ Done in code:
   auto-pausing).
 - Branded placeholder homepage that shows whether Supabase is connected.
 
-Still needs **your** account setup (steps below) — these can't be automated
+Still needs **your** account setup (steps below). These cannot be automated
 because they involve creating accounts and copying secret keys.
 
 ---
@@ -28,9 +28,9 @@ because they involve creating accounts and copying secret keys.
 npm run dev
 ```
 
-Then open http://localhost:3000. Without a `.env.local` the homepage still loads
-and shows an amber "Supabase not connected yet" dot — that is expected until you
-finish the setup below.
+Then open http://localhost:3000. If you are not signed in you are sent to the
+login screen. Complete the Phase 1 setup below to create your admin account and
+sign in.
 
 ---
 
@@ -100,25 +100,79 @@ Once a day is plenty. A successful call returns `{"ok": true, ...}`.
 
 ---
 
+## Phase 1 setup (you do this, once, on the stage project)
+
+Phase 1 adds the database tables and the admin login. Two manual steps are
+needed because I cannot reach your Supabase dashboard.
+
+### 1. Create the database tables
+
+1. Open the **`gpplus-stage`** project in Supabase.
+2. Go to the **SQL Editor** and click **New query**.
+3. Open the file [`supabase/migrations/0001_init.sql`](./supabase/migrations/0001_init.sql)
+   in this project, copy its whole contents, paste into the editor, and click
+   **Run**.
+4. You should see a success message. To confirm, go to **Table Editor**. You
+   will see four tables: `paint_types`, `customers`, `transactions`, and
+   `configuration`. The `paint_types` table already holds Decorative (0.5) and
+   Autorefinish (1), and `configuration` holds one row with threshold 10000 and
+   redemption value 1.
+
+The file is safe to run more than once, so re-running it will not create
+duplicates or wipe anything.
+
+### 2. Create the single admin login
+
+The password stays entirely with you. Never put it in the code or share it.
+
+1. In the **`gpplus-stage`** project, go to **Authentication**, then **Users**.
+2. Click **Add user**, then **Create new user**.
+3. Enter the email and a strong password you want to sign in with. Leave
+   **Auto Confirm User** on so the account is ready to use immediately.
+4. Click **Create user**.
+
+### 3. Sign in
+
+1. Run `npm run dev`.
+2. Open http://localhost:3000. You are not signed in, so you land on the login
+   screen.
+3. Enter the email and password you just created. You arrive at the protected
+   admin home. The **Sign out** button returns you to the login screen.
+
+If sign in fails, double check the email and password match the user you created
+in step 2, and that `.env.local` points at the stage project.
+
+---
+
 ## Project structure
 
 ```
 src/
+  proxy.ts                    # session refresh + auth redirect (Next 16 proxy)
   app/
     api/
-      keep-alive/route.ts   # daily ping endpoint (prevents auto-pause)
-    layout.tsx
-    page.tsx                # branded Phase 0 placeholder
+      keep-alive/route.ts     # daily ping endpoint (prevents auto-pause)
+    login/page.tsx            # public login screen
+    (app)/                    # protected admin area
+      layout.tsx              # verifies the signed-in admin, shows the shell
+      page.tsx                # admin home
+    layout.tsx                # root layout
+    globals.css               # design tokens (colors, type, spacing)
   lib/
     supabase/
-      client.ts             # browser Supabase client
-      server.ts             # server Supabase client (cookie-based auth)
-.env.local.example          # copy to .env.local and fill in
+      client.ts               # browser Supabase client
+      server.ts               # server Supabase client (cookie-based auth)
+    auth/
+      actions.ts              # login and logout server actions
+supabase/
+  migrations/
+    0001_init.sql             # Phase 1 schema, run in the SQL Editor
+.env.local.example            # copy to .env.local and fill in
 ```
 
 ---
 
 ## What's next
 
-Phase 1: database tables (users, transactions, paint_types, configuration),
-Supabase Auth admin login, and a protected layout. See the plan for details.
+Phase 2: customer registration, barcode card linking, global scan quick entry,
+and customer search. See the plan for details.
