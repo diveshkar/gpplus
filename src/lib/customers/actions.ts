@@ -3,7 +3,6 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { findCustomerIdByBarcode } from "@/lib/customers/queries";
 
 // Postgres unique_violation. Raised if a barcode is already linked elsewhere.
 const UNIQUE_VIOLATION = "23505";
@@ -119,22 +118,3 @@ export async function reassignBarcode(
   redirect(`/customers/${customerId}`);
 }
 
-/**
- * Scan lookup used by the global Scan button. A matching card opens the
- * customer directly; an unknown card leads to the new-or-existing decision.
- */
-export async function scanLookup(formData: FormData): Promise<void> {
-  const barcode = String(formData.get("barcode") ?? "").trim();
-
-  if (!barcode) {
-    redirect("/customers");
-  }
-
-  const customerId = await findCustomerIdByBarcode(barcode);
-
-  if (customerId) {
-    redirect(`/customers/${customerId}`);
-  }
-
-  redirect(`/scan/unknown?barcode=${encodeURIComponent(barcode)}`);
-}

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/shell/app-shell";
+import { getPaintTypes } from "@/lib/customers/queries";
 
 /**
  * Protected layout for the admin panel.
@@ -23,5 +24,11 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  return <AppShell userEmail={user.email ?? ""}>{children}</AppShell>;
+  const paintTypes = await getPaintTypes();
+
+  return (
+    <AppShell userEmail={user.email ?? ""} paintTypes={paintTypes}>
+      {children}
+    </AppShell>
+  );
 }
