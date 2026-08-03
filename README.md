@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GP+ Loyalty System
 
-## Getting Started
+Admin-only loyalty points system for a single paint shop. Built with Next.js 16
+(App Router, TypeScript, Tailwind) and Supabase.
 
-First, run the development server:
+The full project plan lives in [`loyalty-system-plan-v2.md`](./loyalty-system-plan-v2.md).
+
+---
+
+## Phase 0 status
+
+Done in code:
+
+- Next.js app scaffolded (TypeScript, Tailwind, App Router, `src/` dir).
+- Supabase client helpers (`src/lib/supabase/client.ts`, `server.ts`).
+- Keep-alive endpoint at `/api/keep-alive` (stops the free-tier database from
+  auto-pausing).
+- Branded placeholder homepage that shows whether Supabase is connected.
+
+Still needs **your** account setup (steps below) — these can't be automated
+because they involve creating accounts and copying secret keys.
+
+---
+
+## Run it locally
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then open http://localhost:3000. Without a `.env.local` the homepage still loads
+and shows an amber "Supabase not connected yet" dot — that is expected until you
+finish the setup below.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## One-time account setup (you do this)
 
-## Learn More
+### 1. Create two Supabase projects
 
-To learn more about Next.js, take a look at the following resources:
+At [supabase.com](https://supabase.com), create **two** free projects:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- one named **`gpplus-stage`** (for testing)
+- one named **`gpplus-prod`** (for the real shop)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The free plan allows two projects per account, which is exactly what we need.
+Keeping them separate means a testing mistake can never touch real customer
+points.
 
-## Deploy on Vercel
+### 2. Connect local development to the STAGE project
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Copy the example env file:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+2. In the Supabase dashboard for **`gpplus-stage`**, go to
+   **Project Settings → API**.
+3. Copy **Project URL** into `NEXT_PUBLIC_SUPABASE_URL`.
+4. Copy the **anon / public** key into `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+5. Restart `npm run dev`. The homepage dot should turn green.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> `.env.local` is git-ignored. Never commit it. Local dev always points at the
+> **stage** project, never prod.
+
+### 3. Deploy to Vercel
+
+1. Push this project to a GitHub repository.
+2. At [vercel.com](https://vercel.com), import that repository (Hobby / free
+   plan is fine).
+3. In the Vercel project's **Settings → Environment Variables**, add the SAME
+   two variable names, but with the values from the **`gpplus-prod`** Supabase
+   project:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - Scope these to the **Production** environment.
+4. (Optional, for a true stage deploy) Create a `stage` git branch and add the
+   **stage** Supabase values scoped to **Preview** in Vercel, so preview
+   deployments point at the stage database.
+
+Your app is now live at a free `*.vercel.app` subdomain — no domain purchase
+needed.
+
+### 4. Set up the daily keep-alive (stops auto-pause)
+
+Supabase free projects pause after ~7 days of no activity. To keep BOTH projects
+awake (even during shop closures), schedule a daily call to the keep-alive URL.
+
+Vercel's own cron (Hobby plan) only runs on the production deployment, so use a
+free external scheduler instead — [cron-job.org](https://cron-job.org),
+[UptimeRobot](https://uptimerobot.com), or a GitHub Actions cron — and point it
+at **both**:
+
+- `https://<your-prod-app>.vercel.app/api/keep-alive`
+- `https://<your-stage-app>.vercel.app/api/keep-alive`
+
+Once a day is plenty. A successful call returns `{"ok": true, ...}`.
+
+> The keep-alive keeps the database **awake**. It is **not** a backup. Real data
+> protection comes from the on-demand Excel export built in Phase 6.
+
+---
+
+## Project structure
+
+```
+src/
+  app/
+    api/
+      keep-alive/route.ts   # daily ping endpoint (prevents auto-pause)
+    layout.tsx
+    page.tsx                # branded Phase 0 placeholder
+  lib/
+    supabase/
+      client.ts             # browser Supabase client
+      server.ts             # server Supabase client (cookie-based auth)
+.env.local.example          # copy to .env.local and fill in
+```
+
+---
+
+## What's next
+
+Phase 1: database tables (users, transactions, paint_types, configuration),
+Supabase Auth admin login, and a protected layout. See the plan for details.
