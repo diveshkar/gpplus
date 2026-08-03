@@ -4,9 +4,12 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { scanBarcode } from "@/lib/transactions/actions";
 import { EarnForm, type PaintTypeOption } from "@/components/transactions/earn-form";
+import { RedeemForm } from "@/components/transactions/redeem-form";
 import { formatPoints } from "@/lib/format";
 import { btnPrimary, input } from "@/lib/ui";
 import type { ScannedCustomer } from "@/lib/transactions/actions";
+
+type ScanConfig = { redemption_threshold: number; redemption_value: number };
 
 /**
  * The global scan dialog, in two steps.
@@ -25,14 +28,17 @@ import type { ScannedCustomer } from "@/lib/transactions/actions";
 export function ScanModal({
   onClose,
   paintTypes,
+  config,
 }: {
   onClose: () => void;
   paintTypes: PaintTypeOption[];
+  config: ScanConfig;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [found, setFound] = useState<ScannedCustomer | null>(null);
+  const [mode, setMode] = useState<"earn" | "redeem">("earn");
 
   // On open: focus the field and listen for Escape to close.
   useEffect(() => {
@@ -63,6 +69,7 @@ export function ScanModal({
 
   function backToScan() {
     setFound(null);
+    setMode("earn");
     // Focus back on the field for the next scan.
     requestAnimationFrame(() => inputRef.current?.focus());
   }
@@ -81,8 +88,8 @@ export function ScanModal({
       >
         {found ? (
           <>
-            <div className="mb-5">
-              <p className="text-xs text-muted">Logging points for</p>
+            <div className="mb-4">
+              <p className="text-xs text-muted">Logging for</p>
               <h2 className="font-heading text-lg font-semibold tracking-tight text-foreground">
                 {found.full_name}
               </h2>
@@ -90,12 +97,42 @@ export function ScanModal({
                 Balance {formatPoints(found.points_balance)} points
               </p>
             </div>
-            <EarnForm
-              customerId={found.id}
-              paintTypes={paintTypes}
-              defaultPaintTypeId={found.default_paint_type_id}
-              onCancel={backToScan}
-            />
+
+            {/* Earn / Redeem toggle */}
+            <div className="mb-5 grid grid-cols-2 gap-1 rounded-lg border border-border bg-background p-1">
+              {(["earn", "redeem"] as const).map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  onClick={() => setMode(option)}
+                  className={[
+                    "rounded-md px-3 py-2 text-sm font-medium capitalize transition-colors",
+                    mode === option
+                      ? "bg-surface text-foreground shadow-sm"
+                      : "text-muted hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+
+            {mode === "earn" ? (
+              <EarnForm
+                customerId={found.id}
+                paintTypes={paintTypes}
+                defaultPaintTypeId={found.default_paint_type_id}
+                onCancel={backToScan}
+              />
+            ) : (
+              <RedeemForm
+                customerId={found.id}
+                balance={found.points_balance}
+                threshold={config.redemption_threshold}
+                value={config.redemption_value}
+                onCancel={backToScan}
+              />
+            )}
           </>
         ) : (
           <>

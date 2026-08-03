@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/shell/app-shell";
 import { getPaintTypes } from "@/lib/customers/queries";
+import { getConfiguration } from "@/lib/settings/queries";
 
 /**
  * Protected layout for the admin panel.
@@ -24,10 +25,20 @@ export default async function AppLayout({
     redirect("/login");
   }
 
-  const paintTypes = await getPaintTypes();
+  const [paintTypes, config] = await Promise.all([
+    getPaintTypes(),
+    getConfiguration(),
+  ]);
 
   return (
-    <AppShell userEmail={user.email ?? ""} paintTypes={paintTypes}>
+    <AppShell
+      userEmail={user.email ?? ""}
+      paintTypes={paintTypes}
+      config={{
+        redemption_threshold: config.redemption_threshold,
+        redemption_value: config.redemption_value,
+      }}
+    >
       {children}
     </AppShell>
   );

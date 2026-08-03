@@ -8,6 +8,8 @@ import { logout } from "@/lib/auth/actions";
 import { ScanModal } from "@/components/shell/scan-modal";
 import type { PaintTypeOption } from "@/components/transactions/earn-form";
 
+type ScanConfig = { redemption_threshold: number; redemption_value: number };
+
 type NavItem = {
   href: string;
   label: string;
@@ -83,10 +85,32 @@ function MenuIcon() {
   );
 }
 
+function SettingsIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+      <path
+        d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: <HomeIcon /> },
   { href: "/customers", label: "Customers", icon: <PeopleIcon /> },
   { href: "/customers/new", label: "Add customer", icon: <AddPersonIcon /> },
+  { href: "/settings", label: "Settings", icon: <SettingsIcon /> },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -105,10 +129,12 @@ function isActive(pathname: string, href: string): boolean {
 export function AppShell({
   userEmail,
   paintTypes,
+  config,
   children,
 }: {
   userEmail: string;
   paintTypes: PaintTypeOption[];
+  config: ScanConfig;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -251,6 +277,7 @@ export function AppShell({
         <ScanModal
           onClose={() => setScanOpen(false)}
           paintTypes={paintTypes}
+          config={config}
         />
       ) : null}
     </div>

@@ -114,6 +114,68 @@ export async function voidTransaction(formData: FormData): Promise<void> {
   revalidatePath(`/customers/${customerId}`);
 }
 
+export type RedeemFormValues = {
+  amount: string;
+  description: string;
+};
+
+export type RedeemFormState = {
+  error: string | null;
+  values: RedeemFormValues;
+};
+
+/**
+ * Record a redemption: convert the product's LKR value into points and deduct
+ * them. The database function checks the threshold and the balance, so those
+ * rules can never be bypassed.
+ */
+export async function createRedeemTransaction(
+  _prev: RedeemFormState,
+  formData: FormData,
+): Promise<RedeemFormState> {
+  const customerId = String(formData.get("customer_id") ?? "");
+  const values: RedeemFormValues = {
+    amount: String(formData.get("amount") ?? "").trim(),
+    description: String(formData.get("description") ?? "").trim(),
+  };
+
+  const amount = Number(values.amount);
+  if (!values.amount || Number.isNaN(amount) || amount <= 0) {
+    return { error: "Please enter an amount greater than zero.", values };
+  }
+  if (!customerId) return { error: "Missing the customer.", values };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("create_redeem_transaction", {
+    p_customer_id: customerId,
+    p_amount_lkr: amount,
+    p_description: values.description,
+  });
+
+  if (error) {
+    const message = error.message ?? "";
+    if (message.includes("BELOW_THRESHOLD")) {
+      return {
+        error: "This customer has not reached the redemption threshold yet.",
+        values,
+      };
+    }
+    if (message.includes("EXCEEDS_BALANCE")) {
+      return {
+        error: "That is more than this customer's balance is worth.",
+        values,
+      };
+    }
+    if (message.includes("INVALID_AMOUNT")) {
+      return { error: "Please enter an amount greater than zero.", values };
+    }
+    return { error: "Could not save this redemption. Please try again.", values };
+  }
+
+  revalidatePath(`/customers/${customerId}`);
+  redirect(`/customers/${customerId}`);
+}
+
 export type ScannedCustomer = {
   id: string;
   full_name: string;

@@ -5,9 +5,10 @@ import {
   getCustomerTransactions,
   expectedBalance,
 } from "@/lib/transactions/queries";
+import { getConfiguration } from "@/lib/settings/queries";
 import { TransactionList } from "@/components/transactions/transaction-list";
-import { formatDate, formatPoints } from "@/lib/format";
-import { btnPrimary, card } from "@/lib/ui";
+import { formatDate, formatLKR, formatPoints } from "@/lib/format";
+import { btnPrimary, btnSecondary, card } from "@/lib/ui";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -26,9 +27,10 @@ export default async function CustomerProfilePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [customer, transactions] = await Promise.all([
+  const [customer, transactions, config] = await Promise.all([
     getCustomerById(id),
     getCustomerTransactions(id),
+    getConfiguration(),
   ]);
 
   if (!customer) {
@@ -37,6 +39,7 @@ export default async function CustomerProfilePage({
 
   const expected = expectedBalance(transactions);
   const hasDrift = Math.abs(expected - customer.points_balance) > 0.0001;
+  const worth = customer.points_balance * config.redemption_value;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -88,10 +91,21 @@ export default async function CustomerProfilePage({
               points
             </span>
           </p>
+          <p className="mt-1 text-sm text-muted">
+            Worth {formatLKR(worth)} toward a product
+          </p>
         </div>
-        <Link href={`/customers/${customer.id}/earn`} className={btnPrimary}>
-          Add points
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`/customers/${customer.id}/earn`} className={btnPrimary}>
+            Add points
+          </Link>
+          <Link
+            href={`/customers/${customer.id}/redeem`}
+            className={btnSecondary}
+          >
+            Redeem
+          </Link>
+        </div>
       </div>
 
       {/* Details */}
