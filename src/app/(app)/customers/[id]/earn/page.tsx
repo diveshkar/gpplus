@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCustomerById, getPaintTypes } from "@/lib/customers/queries";
 import { EarnForm } from "@/components/transactions/earn-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { FormAside } from "@/components/ui/form-aside";
 import { card } from "@/lib/ui";
 
 export default async function EarnPage({
@@ -20,28 +21,33 @@ export default async function EarnPage({
   }
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
-      <div>
-        <Link
-          href={`/customers/${customer.id}`}
-          className="text-sm font-medium text-muted transition-colors hover:text-foreground"
-        >
-          Back to {customer.full_name}
-        </Link>
-        <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Add points
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Log a purchase for {customer.full_name} to earn points.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Add points"
+        description={`Log a purchase for ${customer.full_name} to earn points.`}
+        backHref={`/customers/${customer.id}`}
+        backLabel={`Back to ${customer.full_name}`}
+      />
 
-      <div className={`${card} p-6`}>
-        <EarnForm
-          customerId={customer.id}
-          paintTypes={paintTypes}
-          defaultPaintTypeId={customer.default_paint_type_id}
-          cancelHref={`/customers/${customer.id}`}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className={`${card} p-6`}>
+          <EarnForm
+            customerId={customer.id}
+            paintTypes={paintTypes}
+            defaultPaintTypeId={customer.default_paint_type_id}
+            cancelHref={`/customers/${customer.id}`}
+          />
+        </div>
+
+        <FormAside
+          animation="/painting-and-decorating.json"
+          title="Reward every purchase"
+          intro="Points are worked out from the sale amount and the paint type's rate."
+          tips={[
+            "Pick the paint type so the correct rate applies.",
+            "Add a short note to make the receipt easy to recognise later.",
+            "Points are added to the balance the moment you save.",
+          ]}
         />
       </div>
     </div>

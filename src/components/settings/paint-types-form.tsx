@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   updatePaintType,
   type PaintTypeState,
@@ -26,6 +27,10 @@ function PaintTypeRow({ paintType }: { paintType: PaintType }) {
     updatePaintType,
     initialState,
   );
+
+  useEffect(() => {
+    if (state.success) toast.success("Paint type saved");
+  }, [state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3 py-4">
@@ -74,8 +79,6 @@ function PaintTypeRow({ paintType }: { paintType: PaintType }) {
         <p role="alert" className={errorAlert}>
           {state.error}
         </p>
-      ) : state.success ? (
-        <p className="text-sm text-success">Saved.</p>
       ) : null}
     </form>
   );

@@ -1,8 +1,9 @@
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getTransactionById } from "@/lib/transactions/queries";
 import { getCustomerById, getPaintTypes } from "@/lib/customers/queries";
 import { EarnForm } from "@/components/transactions/earn-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { FormAside } from "@/components/ui/form-aside";
 import { card } from "@/lib/ui";
 
 export default async function EditTransactionPage({
@@ -33,33 +34,37 @@ export default async function EditTransactionPage({
   }
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
-      <div>
-        <Link
-          href={`/customers/${customer.id}`}
-          className="text-sm font-medium text-muted transition-colors hover:text-foreground"
-        >
-          Back to {customer.full_name}
-        </Link>
-        <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Edit transaction
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Correcting this recalculates the points and adjusts the balance to
-          match.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Edit transaction"
+        description="Correcting this recalculates the points and adjusts the balance to match."
+        backHref={`/customers/${customer.id}`}
+        backLabel={`Back to ${customer.full_name}`}
+      />
 
-      <div className={`${card} p-6`}>
-        <EarnForm
-          mode="edit"
-          transactionId={transaction.id}
-          customerId={transaction.customer_id}
-          paintTypes={paintTypes}
-          defaultPaintTypeId={transaction.paint_type_id}
-          initialAmount={String(transaction.amount)}
-          initialDescription={transaction.description ?? ""}
-          cancelHref={`/customers/${customer.id}`}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className={`${card} p-6`}>
+          <EarnForm
+            mode="edit"
+            transactionId={transaction.id}
+            customerId={transaction.customer_id}
+            paintTypes={paintTypes}
+            defaultPaintTypeId={transaction.paint_type_id}
+            initialAmount={String(transaction.amount)}
+            initialDescription={transaction.description ?? ""}
+            cancelHref={`/customers/${customer.id}`}
+          />
+        </div>
+
+        <FormAside
+          animation="/painting-and-decorating.json"
+          title="Fix it with confidence"
+          intro="Editing safely re-does the maths so the customer's balance stays correct."
+          tips={[
+            "Change the amount or paint type and points update to match.",
+            "The old points are reversed and the new ones applied in one step.",
+            "The original record stays in their activity for a clear audit trail.",
+          ]}
         />
       </div>
     </div>

@@ -2,11 +2,17 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/auth/profile";
 
 export type SettingsValues = {
+  admin_name: string;
+  logo_url: string;
+  brand_color: string;
   redemption_threshold: string;
   redemption_value: string;
 };
+
+const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 export type SettingsState = {
   error: string | null;
@@ -24,6 +30,9 @@ export async function updateSettings(
   formData: FormData,
 ): Promise<SettingsState> {
   const values: SettingsValues = {
+    admin_name: String(formData.get("admin_name") ?? "").trim(),
+    logo_url: String(formData.get("logo_url") ?? ""),
+    brand_color: String(formData.get("brand_color") ?? "#c1121f").trim(),
     redemption_threshold: String(
       formData.get("redemption_threshold") ?? "",
     ).trim(),
@@ -51,12 +60,30 @@ export async function updateSettings(
       values,
     };
   }
+  if (!HEX_COLOR.test(values.brand_color)) {
+    return {
+      error: "Please choose a valid brand colour.",
+      success: false,
+      values,
+    };
+  }
+
+  const profile = await getProfile();
+  if (!profile?.organization_id) {
+    return { error: "You are not allowed to do this.", success: false, values };
+  }
 
   const supabase = await createClient();
   const { error } = await supabase
-    .from("configuration")
-    .update({ redemption_threshold: threshold, redemption_value: value })
-    .eq("id", 1);
+    .from("organizations")
+    .update({
+      admin_name: values.admin_name || null,
+      logo_url: values.logo_url || null,
+      brand_color: values.brand_color,
+      redemption_threshold: threshold,
+      redemption_value: value,
+    })
+    .eq("id", profile.organization_id);
 
   if (error) {
     return {
@@ -66,7 +93,8 @@ export async function updateSettings(
     };
   }
 
-  revalidatePath("/settings");
+  // Branding (logo, colour) shows across the whole shell, so refresh the layout.
+  revalidatePath("/", "layout");
   return { error: null, success: true, values };
 }
 

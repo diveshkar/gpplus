@@ -22,5 +22,8 @@ export const btnSecondary =
 export const btnGhost =
   "inline-flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-medium text-muted transition-colors hover:bg-background hover:text-foreground";
 
+export const btnDanger =
+  "inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-danger px-4 text-sm font-semibold text-white shadow-sm transition-all hover:bg-red-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100";
+
 export const errorAlert =
   "rounded-xl border border-danger/20 bg-danger/5 px-3.5 py-2.5 text-sm text-danger";

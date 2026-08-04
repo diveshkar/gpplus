@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { btnSecondary } from "@/lib/ui";
 
 /**
@@ -16,11 +17,9 @@ export function ExportButton({
   month: number;
 }) {
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState(false);
 
   async function handleExport() {
     setPending(true);
-    setError(false);
     try {
       const response = await fetch(`/api/export?year=${year}&month=${month}`);
       if (!response.ok) throw new Error("Export failed");
@@ -34,21 +33,21 @@ export function ExportButton({
       link.click();
       link.remove();
       URL.revokeObjectURL(objectUrl);
+      toast.success("Export downloaded");
     } catch {
-      setError(true);
+      toast.error("Export failed. Please try again.");
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <button
-        type="button"
-        onClick={handleExport}
-        disabled={pending}
-        className={`${btnSecondary} h-10`}
-      >
+    <button
+      type="button"
+      onClick={handleExport}
+      disabled={pending}
+      className={`${btnSecondary} h-10`}
+    >
         {pending ? (
           <svg
             viewBox="0 0 24 24"
@@ -88,12 +87,6 @@ export function ExportButton({
           </svg>
         )}
         {pending ? "Preparing..." : "Export"}
-      </button>
-      {error ? (
-        <span className="text-xs text-danger">
-          Export failed. Please try again.
-        </span>
-      ) : null}
-    </div>
+    </button>
   );
 }

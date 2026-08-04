@@ -167,11 +167,30 @@ export function EarnForm({
 
       <div className="flex items-center gap-3">
         <button type="submit" disabled={pending} className={btnPrimary}>
-          {pending
-            ? "Saving..."
-            : mode === "edit"
-              ? "Save changes"
-              : "Save transaction"}
+          {pending ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                className="h-4 w-4"
+                aria-hidden
+              >
+                <path
+                  d="M20 6 9 17l-5-5"
+                  stroke="currentColor"
+                  strokeWidth="1.9"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              {mode === "edit" ? "Save changes" : "Save transaction"}
+            </>
+          )}
         </button>
         {onCancel ? (
           <button

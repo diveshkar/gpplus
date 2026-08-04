@@ -1,11 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { logout } from "@/lib/auth/actions";
 import { ScanModal } from "@/components/shell/scan-modal";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { LogoProvider } from "@/components/shell/logo-context";
+import { useGlobalScanner } from "@/components/shell/use-global-scanner";
 import type { PaintTypeOption } from "@/components/transactions/earn-form";
 
 type ScanConfig = { redemption_threshold: number; redemption_value: number };
@@ -130,38 +132,52 @@ export function AppShell({
   userEmail,
   paintTypes,
   config,
+  logoUrl,
+  brandColor,
   children,
 }: {
   userEmail: string;
   paintTypes: PaintTypeOption[];
   config: ScanConfig;
+  logoUrl: string | null;
+  brandColor?: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [pendingBarcode, setPendingBarcode] = useState<string | null>(null);
+  const logo = logoUrl || "/gpplus-mark.png";
 
   function openScan() {
     setDrawerOpen(false);
+    setPendingBarcode(null);
     setScanOpen(true);
   }
 
+  function closeScan() {
+    setScanOpen(false);
+    setPendingBarcode(null);
+  }
+
+  // Auto-open the scan popup when a hardware scanner fires and no field is focused.
+  const handleGlobalScan = useCallback((code: string) => {
+    setDrawerOpen(false);
+    setPendingBarcode(code);
+    setScanOpen(true);
+  }, []);
+  useGlobalScanner(handleGlobalScan);
+
   const sidebar = (
-    <div className="flex h-full flex-col gap-6 p-4">
+    <div className="flex h-full flex-col gap-7 p-5">
       <Link
         href="/"
         onClick={() => setDrawerOpen(false)}
-        className="flex items-center gap-2.5 px-1 py-1"
+        className="flex items-center gap-3 px-1 py-1"
       >
-        <Image
-          src="/gppluslogo-transparent.png"
-          alt="GP+"
-          width={36}
-          height={36}
-          className="h-9 w-9 object-contain"
-          priority
-        />
-        <span className="font-heading text-base font-semibold tracking-tight text-foreground">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logo} alt="GP+" className="h-12 w-12 object-contain" />
+        <span className="font-heading text-lg font-semibold tracking-tight text-foreground">
           GP+ Loyalty
         </span>
       </Link>
@@ -175,7 +191,7 @@ export function AppShell({
         Scan a card
       </button>
 
-      <nav className="flex flex-1 flex-col gap-1">
+      <nav className="flex flex-1 flex-col gap-1.5">
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -185,13 +201,27 @@ export function AppShell({
               onClick={() => setDrawerOpen(false)}
               aria-current={active ? "page" : undefined}
               className={[
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                "group relative flex items-center gap-3.5 rounded-xl px-3.5 py-3 text-sm font-medium transition-all",
                 active
                   ? "bg-brand-soft text-brand-strong"
-                  : "text-muted hover:bg-background hover:text-foreground",
+                  : "text-muted hover:bg-brand-soft/40 hover:text-foreground",
               ].join(" ")}
             >
-              {item.icon}
+              {active ? (
+                <span
+                  className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-brand"
+                  aria-hidden
+                />
+              ) : null}
+              <span
+                className={
+                  active
+                    ? "text-brand"
+                    : "text-muted transition-colors group-hover:text-foreground"
+                }
+              >
+                {item.icon}
+              </span>
               {item.label}
             </Link>
           );
@@ -202,31 +232,50 @@ export function AppShell({
         <p className="truncate px-3 text-xs text-muted" title={userEmail}>
           {userEmail}
         </p>
-        <form action={logout} className="mt-2">
-          <button
-            type="submit"
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-background hover:text-foreground"
-          >
-            <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
-              <path
-                d="M15 12H4m0 0 3.5-3.5M4 12l3.5 3.5M14 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            Sign out
-          </button>
-        </form>
+        <div className="mt-2">
+          <ConfirmDialog
+            title="Sign out?"
+            description="You will need to sign in again to use the loyalty desk."
+            confirmLabel="Sign out"
+            onConfirm={() => logout()}
+            trigger={
+              <button
+                type="button"
+                className="flex w-full items-center gap-3.5 rounded-xl px-3.5 py-3 text-sm font-medium text-muted transition-colors hover:bg-brand-soft/40 hover:text-foreground"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="h-5 w-5"
+                  aria-hidden
+                >
+                  <path
+                    d="M15 12H4m0 0 3.5-3.5M4 12l3.5 3.5M14 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+                Sign out
+              </button>
+            }
+          />
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-full">
-      {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-surface md:block">
+    <LogoProvider value={logo}>
+      {/* Per-org brand colour: overriding --brand cascades to every bg-brand,
+          text-brand, etc. and the derived strong/soft shades (see globals.css). */}
+      <div
+        className="flex min-h-full"
+        style={brandColor ? ({ "--brand": brandColor } as React.CSSProperties) : undefined}
+      >
+        {/* Desktop sidebar */}
+      <aside className="hidden w-72 shrink-0 border-r border-border bg-surface md:block">
         <div className="sticky top-0 h-screen">{sidebar}</div>
       </aside>
 
@@ -255,8 +304,12 @@ export function AppShell({
           >
             <MenuIcon />
           </button>
-          <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
-            GP+ Loyalty
+          <span className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logo} alt="GP+" className="h-7 w-7 object-contain" />
+            <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
+              GP+ Loyalty
+            </span>
           </span>
           <button
             type="button"
@@ -270,19 +323,21 @@ export function AppShell({
 
         <main
           key={pathname}
-          className="mx-auto w-full max-w-4xl flex-1 animate-fade-up px-5 py-8"
+          className="w-full flex-1 animate-fade-up px-5 py-8 sm:px-8 lg:px-10"
         >
           {children}
         </main>
       </div>
 
-      {scanOpen ? (
-        <ScanModal
-          onClose={() => setScanOpen(false)}
-          paintTypes={paintTypes}
-          config={config}
-        />
-      ) : null}
-    </div>
+        {scanOpen ? (
+          <ScanModal
+            onClose={closeScan}
+            paintTypes={paintTypes}
+            config={config}
+            autoBarcode={pendingBarcode}
+          />
+        ) : null}
+      </div>
+    </LogoProvider>
   );
 }

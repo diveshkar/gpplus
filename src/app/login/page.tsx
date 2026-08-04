@@ -31,33 +31,56 @@ export default function LoginPage() {
       </video>
 
       {/* Overlays for contrast and a warm red wash */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/80 to-[#3a0709]/85" />
-      <div className="pointer-events-none absolute -left-32 top-1/3 h-96 w-96 rounded-full bg-brand/25 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/92 via-black/82 to-[#3a0709]/88" />
+      <div className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-brand/25 blur-3xl" />
+      <Image
+        src="/paintcanparnsparent.png"
+        alt=""
+        width={560}
+        height={560}
+        aria-hidden
+        className="pointer-events-none absolute -bottom-20 right-0 hidden h-[26rem] w-auto select-none opacity-[0.10] lg:block"
+      />
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-sm animate-fade-up">
-        <div className="flex flex-col items-center text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xl">
+      {/* Content: brand lockup and form, side by side on desktop */}
+      <div className="relative z-10 grid w-full max-w-5xl animate-fade-up items-center gap-12 lg:grid-cols-2 lg:gap-20">
+        {/* Brand */}
+        <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-2xl">
             <Image
-              src="/gppluslogo-transparent.png"
+              src="/gpplus-mark.png"
               alt="GP+"
-              width={44}
-              height={44}
+              width={72}
+              height={72}
               priority
-              className="h-11 w-11 object-contain"
+              className="h-16 w-16 object-contain"
             />
           </div>
-          <h1 className="mt-6 font-heading text-3xl font-semibold tracking-tight text-white">
+          <p className="mt-8 text-xs font-semibold uppercase tracking-[0.25em] text-brand/90">
+            GP+ Loyalty
+          </p>
+          <h1 className="mt-3 font-heading text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
             Welcome back
           </h1>
-          <p className="mt-2 text-sm text-white/60">
-            Sign in to the GP+ loyalty desk.
+          <p className="mt-4 max-w-md text-base leading-relaxed text-white/60">
+            Sign in to the loyalty desk to register customers, log sales, and
+            reward your regulars.
           </p>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.06] p-6 shadow-2xl backdrop-blur-xl sm:p-7">
+        {/* Form card */}
+        <div className="mx-auto w-full max-w-md rounded-3xl border border-white/10 bg-white/[0.06] p-8 shadow-2xl backdrop-blur-xl sm:p-10">
+          <div className="mb-7">
+            <h2 className="font-heading text-xl font-semibold tracking-tight text-white">
+              Sign in
+            </h2>
+            <p className="mt-1 text-sm text-white/50">
+              Enter your admin details to continue.
+            </p>
+          </div>
+
           <form action={formAction} className="flex flex-col gap-5" noValidate>
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <label htmlFor="email" className="text-sm font-medium text-white/80">
                 Email
               </label>
@@ -72,7 +95,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-2">
               <label
                 htmlFor="password"
                 className="text-sm font-medium text-white/80"
@@ -102,7 +125,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={pending}
-              className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-lg shadow-brand/30 transition-all hover:bg-brand-strong active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100"
+              className="mt-2 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-brand px-4 text-sm font-semibold text-white shadow-lg shadow-brand/30 transition-all hover:bg-brand-strong active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100"
             >
               {pending ? (
                 <>
@@ -114,11 +137,11 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-        </div>
 
-        <p className="mt-6 text-center text-xs text-white/40">
-          Paint shop loyalty desk. Authorised staff only.
-        </p>
+          <p className="mt-7 text-center text-xs text-white/40">
+            Authorised staff only.
+          </p>
+        </div>
       </div>
     </main>
   );

@@ -77,7 +77,7 @@ export async function createCustomer(
   }
 
   revalidatePath("/customers");
-  redirect(`/customers/${data.id}`);
+  redirect(`/customers/${data.id}?toast=customer_saved`);
 }
 
 export type ReassignState = {
@@ -115,6 +115,6 @@ export async function reassignBarcode(
 
   revalidatePath(`/customers/${customerId}`);
   revalidatePath("/customers");
-  redirect(`/customers/${customerId}`);
+  redirect(`/customers/${customerId}?toast=card_linked`);
 }
 

@@ -29,14 +29,33 @@ function sanitiseSearchTerm(term: string): string {
 }
 
 /**
+ * Build the `or` filter for a search term, matching name, phone, barcode, and
+ * (when the term is a full date) date of birth. Returns null for an empty term.
+ */
+function searchOrFilter(query: string): string | null {
+  const term = sanitiseSearchTerm(query);
+  if (!term) return null;
+
+  const filters = [
+    `full_name.ilike.%${term}%`,
+    `phone_number.ilike.%${term}%`,
+    `barcode_id.ilike.%${term}%`,
+  ];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(term)) {
+    filters.push(`date_of_birth.eq.${term}`);
+  }
+  return filters.join(",");
+}
+
+/**
  * Search customers by name, phone number, or barcode. An empty query returns
- * the most recently added customers so the list is never blank.
+ * the most recently added customers so the list is never blank. Used where a
+ * simple capped list is enough (the lost-card lookup).
  */
 export async function searchCustomers(
   query: string,
 ): Promise<CustomerWithPaintType[]> {
   const supabase = await createClient();
-  const term = sanitiseSearchTerm(query);
 
   let request = supabase
     .from("customers")
@@ -44,22 +63,53 @@ export async function searchCustomers(
     .order("created_at", { ascending: false })
     .limit(50);
 
-  if (term.length > 0) {
-    const filters = [
-      `full_name.ilike.%${term}%`,
-      `phone_number.ilike.%${term}%`,
-      `barcode_id.ilike.%${term}%`,
-    ];
-    // If the term is a full date (YYYY-MM-DD), also match on date of birth.
-    if (/^\d{4}-\d{2}-\d{2}$/.test(term)) {
-      filters.push(`date_of_birth.eq.${term}`);
-    }
-    request = request.or(filters.join(","));
-  }
+  const orFilter = searchOrFilter(query);
+  if (orFilter) request = request.or(orFilter);
 
   const { data, error } = await request;
   if (error) throw error;
   return (data ?? []) as unknown as CustomerWithPaintType[];
+}
+
+export type CustomerSort = "name" | "balance" | "created";
+export type SortDir = "asc" | "desc";
+
+const SORT_COLUMN: Record<CustomerSort, string> = {
+  name: "full_name",
+  balance: "points_balance",
+  created: "created_at",
+};
+
+/**
+ * Paginated, sortable customer search for the main list. Returns one page of
+ * results and the total count so the pagination control knows how many pages
+ * there are.
+ */
+export async function searchCustomersPaged(
+  query: string,
+  page: number,
+  options: { pageSize?: number; sort?: CustomerSort; dir?: SortDir } = {},
+): Promise<{ customers: CustomerWithPaintType[]; total: number }> {
+  const { pageSize = 15, sort = "created", dir = "desc" } = options;
+  const supabase = await createClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let request = supabase
+    .from("customers")
+    .select(CUSTOMER_WITH_TYPE_SELECT, { count: "exact" })
+    .order(SORT_COLUMN[sort], { ascending: dir === "asc" })
+    .range(from, to);
+
+  const orFilter = searchOrFilter(query);
+  if (orFilter) request = request.or(orFilter);
+
+  const { data, error, count } = await request;
+  if (error) throw error;
+  return {
+    customers: (data ?? []) as unknown as CustomerWithPaintType[],
+    total: count ?? 0,
+  };
 }
 
 /**
