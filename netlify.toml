@@ -1,0 +1,11 @@
+# Netlify configuration for the loyalty system (Next.js app).
+# Netlify auto-detects Next.js and installs its official runtime, so the only
+# things pinned here are the build command and a modern Node version (Next 16
+# needs Node 20). Environment variables (Supabase keys) are set in the Netlify
+# dashboard, never committed.
+
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
