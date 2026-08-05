@@ -14,7 +14,15 @@ import { ExportButton } from "@/components/reports/export-button";
 import { LottiePlayer } from "@/components/ui/lottie-player";
 
 function greeting(): string {
-  const hour = new Date().getHours();
+  // The server clock is UTC, so read the hour in Sri Lanka time (the timezone
+  // the rest of the app uses) instead of the server's, or the greeting is wrong.
+  const hour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      hourCycle: "h23",
+      timeZone: "Asia/Colombo",
+    }).format(new Date()),
+  );
   if (hour < 12) return "Good morning";
   if (hour < 18) return "Good afternoon";
   return "Good evening";
