@@ -7,6 +7,7 @@ import {
   createOrganization,
   type CreateOrgState,
 } from "@/lib/organizations/actions";
+import { PasswordInput } from "@/components/ui/password-input";
 import { btnPrimary, errorAlert, input, label } from "@/lib/ui";
 
 const DEFAULT_BRAND = "#c1121f";
@@ -159,10 +160,9 @@ export function CreateOrgForm() {
         <label htmlFor="admin_password" className={label}>
           Temporary password
         </label>
-        <input
+        <PasswordInput
           id="admin_password"
           name="admin_password"
-          type="text"
           autoComplete="off"
           required
           minLength={8}

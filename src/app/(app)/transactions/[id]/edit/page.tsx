@@ -61,7 +61,7 @@ export default async function EditTransactionPage({
           title="Fix it with confidence"
           intro="Editing safely re-does the maths so the customer's balance stays correct."
           tips={[
-            "Change the amount or paint type and points update to match.",
+            "Change the amount or category and points update to match.",
             "The old points are reversed and the new ones applied in one step.",
             "The original record stays in their activity for a clear audit trail.",
           ]}

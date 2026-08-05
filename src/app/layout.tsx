@@ -22,8 +22,8 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "GP+ Loyalty",
-  description: "Paint shop loyalty points, built for the counter.",
+  title: "Loyalty System",
+  description: "Loyalty points, built for the counter.",
 };
 
 export default function RootLayout({

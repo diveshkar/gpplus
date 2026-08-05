@@ -49,6 +49,7 @@ export default async function AppLayout({
   return (
     <AppShell
       userEmail={user.email ?? ""}
+      displayName={org.admin_name?.trim() || org.name}
       paintTypes={paintTypes}
       config={{
         redemption_threshold: org.redemption_threshold,

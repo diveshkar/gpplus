@@ -38,9 +38,19 @@ export function LottiePlayer({
     let cancelled = false;
 
     (async () => {
-      const lottie = (await import("lottie-web")).default;
-      if (cancelled || !containerRef.current) return;
+      // Fetch the JSON ourselves and pass the parsed data to lottie. Letting
+      // lottie load the path itself can trip an XHR responseType bug in some
+      // browsers ("Failed to read the 'responseText' property..."), so we avoid
+      // its internal request entirely.
+      const [lottieModule, data] = await Promise.all([
+        import("lottie-web"),
+        fetch(src)
+          .then((response) => (response.ok ? response.json() : null))
+          .catch(() => null),
+      ]);
+      if (cancelled || !containerRef.current || !data) return;
 
+      const lottie = lottieModule.default;
       const prefersReducedMotion = window.matchMedia(
         "(prefers-reduced-motion: reduce)",
       ).matches;
@@ -50,7 +60,7 @@ export function LottiePlayer({
         renderer: "svg",
         loop,
         autoplay: autoplay && !prefersReducedMotion,
-        path: src,
+        animationData: data,
       });
 
       animation.setSpeed(speed);
@@ -58,7 +68,7 @@ export function LottiePlayer({
       // Hold on the first frame for reduced-motion users so the illustration
       // still shows without any movement.
       if (prefersReducedMotion) {
-        animation.addEventListener("DOMLoaded", () => animation?.goToAndStop(0, true));
+        animation.goToAndStop(0, true);
       }
     })();
 

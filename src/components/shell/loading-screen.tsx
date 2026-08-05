@@ -3,10 +3,11 @@
 import { useLogo } from "@/components/shell/logo-context";
 
 /**
- * The single, consistent loading screen. A red arc turns around the current
- * brand logo (the uploaded one when available, otherwise the default GP+ mark)
- * over a soft glow, with the logo as the focal point. In full-screen mode it
- * covers the entire viewport. Responsive across desktop, tablet, and mobile.
+ * The custom, branded loading screen. A red arc turns around the current
+ * business logo (the uploaded one when available, otherwise the default mark)
+ * over a soft glow. Used inside a business's app, where its branding is known.
+ * For generic, common loading with no business branding, use DefaultLoadingScreen.
+ * In full screen mode it covers the entire viewport.
  */
 export function LoadingScreen({
   label = "Loading",

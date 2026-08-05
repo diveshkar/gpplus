@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 
-const DEFAULT_LOGO = "/gpplus-mark.png";
+const DEFAULT_LOGO = "/loyalty-mark.svg";
 
 const LogoContext = createContext<string>(DEFAULT_LOGO);
 

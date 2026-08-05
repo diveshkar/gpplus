@@ -28,7 +28,7 @@ export function ExportButton({
       const objectUrl = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = objectUrl;
-      link.download = `gpplus-export-${year}-${String(month).padStart(2, "0")}.xlsx`;
+      link.download = `loyalty-export-${year}-${String(month).padStart(2, "0")}.xlsx`;
       document.body.appendChild(link);
       link.click();
       link.remove();

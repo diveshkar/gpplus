@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { listOrganizations } from "@/lib/organizations/queries";
 import { OrgActiveToggle } from "@/components/admin/org-active-toggle";
+import { OrgDeleteButton } from "@/components/admin/org-delete-button";
 import { formatDate } from "@/lib/format";
 import { btnPrimary, card } from "@/lib/ui";
 
@@ -73,6 +74,7 @@ export default async function AdminOrganizationsPage() {
                   {org.active ? "Active" : "Suspended"}
                 </span>
                 <OrgActiveToggle id={org.id} active={org.active} />
+                <OrgDeleteButton id={org.id} name={org.name} />
               </div>
             </div>
           ))}

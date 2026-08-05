@@ -42,9 +42,9 @@ export default async function EarnPage({
         <FormAside
           animation="/painting-and-decorating.json"
           title="Reward every purchase"
-          intro="Points are worked out from the sale amount and the paint type's rate."
+          intro="Points are worked out from the sale amount and the category's rate."
           tips={[
-            "Pick the paint type so the correct rate applies.",
+            "Pick the category so the correct rate applies.",
             "Add a short note to make the receipt easy to recognise later.",
             "Points are added to the balance the moment you save.",
           ]}

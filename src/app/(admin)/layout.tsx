@@ -34,10 +34,10 @@ export default async function AdminLayout({
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
           <Link href="/admin" className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/gpplus-mark.png" alt="GP+" className="h-9 w-9 object-contain" />
+            <img src="/loyalty-mark.svg" alt="" aria-hidden className="h-9 w-9" />
             <span className="flex flex-col leading-tight">
               <span className="font-heading text-base font-semibold tracking-tight text-foreground">
-                GP+ Platform
+                Loyalty System
               </span>
               <span className="text-xs text-muted">Super admin</span>
             </span>

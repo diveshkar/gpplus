@@ -24,7 +24,7 @@ function readEarnForm(formData: FormData): EarnFormValues {
 }
 
 function validateEarn(values: EarnFormValues): string | null {
-  if (!values.paint_type_id) return "Please choose a paint type.";
+  if (!values.paint_type_id) return "Please choose a category.";
   const amount = Number(values.amount);
   if (!values.amount || Number.isNaN(amount) || amount <= 0) {
     return "Please enter an amount greater than zero.";

@@ -8,7 +8,7 @@ import {
 } from "@/lib/settings/actions";
 import { btnPrimary, btnSecondary, errorAlert, input, label } from "@/lib/ui";
 
-const DEFAULT_LOGO = "/gpplus-mark.png";
+const DEFAULT_LOGO = "/loyalty-mark.svg";
 
 // Resize a chosen image to a small PNG data URL so the stored logo stays light.
 function fileToResizedDataUrl(file: File, max = 256): Promise<string> {

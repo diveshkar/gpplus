@@ -53,7 +53,7 @@ export default async function CustomerProfilePage({
         description={
           customer.default_paint_type?.name
             ? `${customer.default_paint_type.name} customer`
-            : "No customer type set"
+            : "No category set"
         }
         backHref="/customers"
         backLabel="Back to customers"

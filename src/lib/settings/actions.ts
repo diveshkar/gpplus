@@ -110,7 +110,7 @@ export type PaintTypeState = {
 };
 
 /**
- * Rename a paint type or change its earning rate. Changing the rate only affects
+ * Rename a category or change its earning rate. Changing the rate only affects
  * new transactions, since every past earn row snapshotted the rate it used.
  * Renaming updates the label shown everywhere, including on past rows, which is
  * fine because the name is just a label and the points are unaffected.
@@ -126,7 +126,7 @@ export async function updatePaintType(
   };
 
   if (!id) {
-    return { error: "Missing the paint type.", success: false, values };
+    return { error: "Missing the category.", success: false, values };
   }
   if (!values.name) {
     return { error: "Please enter a name.", success: false, values };
@@ -153,13 +153,13 @@ export async function updatePaintType(
   if (error) {
     if (error.code === "23505") {
       return {
-        error: "A paint type with that name already exists.",
+        error: "A category with that name already exists.",
         success: false,
         values,
       };
     }
     return {
-      error: "Could not save the paint type. Please try again.",
+      error: "Could not save the category. Please try again.",
       success: false,
       values,
     };
@@ -167,4 +167,74 @@ export async function updatePaintType(
 
   revalidatePath("/settings");
   return { error: null, success: true, values };
+}
+
+/**
+ * Add a new category. The organization it belongs to is stamped automatically
+ * by a database trigger, so it always lands in the caller's own business.
+ */
+export async function createPaintType(
+  _prev: PaintTypeState,
+  formData: FormData,
+): Promise<PaintTypeState> {
+  const values: PaintTypeValues = {
+    name: String(formData.get("name") ?? "").trim(),
+    earning_percentage: String(formData.get("earning_percentage") ?? "").trim(),
+  };
+
+  if (!values.name) {
+    return { error: "Please enter a name.", success: false, values };
+  }
+  const percentage = Number(values.earning_percentage);
+  if (
+    values.earning_percentage === "" ||
+    Number.isNaN(percentage) ||
+    percentage < 0
+  ) {
+    return {
+      error: "Please enter a percentage of zero or more.",
+      success: false,
+      values,
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("paint_types")
+    .insert({ name: values.name, earning_percentage: percentage });
+
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        error: "A category with that name already exists.",
+        success: false,
+        values,
+      };
+    }
+    return {
+      error: "Could not add the category. Please try again.",
+      success: false,
+      values,
+    };
+  }
+
+  revalidatePath("/settings");
+  return {
+    error: null,
+    success: true,
+    values: { name: "", earning_percentage: "" },
+  };
+}
+
+/**
+ * Remove a category. Any customers or past transactions that referenced it keep
+ * their history; their link to this category is simply cleared (the database
+ * handles that automatically). Row Level Security limits this to the caller's
+ * own business.
+ */
+export async function deletePaintType(id: string): Promise<void> {
+  if (!id) return;
+  const supabase = await createClient();
+  await supabase.from("paint_types").delete().eq("id", id);
+  revalidatePath("/settings");
 }

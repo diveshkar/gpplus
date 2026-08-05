@@ -95,7 +95,7 @@ export function EarnForm({
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="paint_type_id" className={label}>
-          Paint type
+          Category
         </label>
         <div className="relative">
           <select
@@ -107,7 +107,7 @@ export function EarnForm({
             className={select}
           >
             <option value="" disabled>
-              Choose a paint type
+              Choose a category
             </option>
             {paintTypes.map((type) => (
               <option key={type.id} value={type.id}>

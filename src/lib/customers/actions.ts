@@ -46,7 +46,7 @@ export async function createCustomer(
     return { error: "Please enter the customer's full name.", values };
   }
   if (!values.default_paint_type_id) {
-    return { error: "Please choose a customer type.", values };
+    return { error: "Please choose a category.", values };
   }
   if (!values.barcode_id) {
     return { error: "Please scan the customer's loyalty card.", values };

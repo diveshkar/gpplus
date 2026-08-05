@@ -1,7 +1,7 @@
 import { getCurrentOrganization } from "@/lib/organizations/queries";
 import { getPaintTypes } from "@/lib/customers/queries";
 import { SettingsForm } from "@/components/settings/settings-form";
-import { PaintTypesForm } from "@/components/settings/paint-types-form";
+import { CategoriesForm } from "@/components/settings/categories-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { card } from "@/lib/ui";
 
@@ -33,16 +33,16 @@ export default async function SettingsPage() {
           </div>
         </section>
 
-        {/* Paint types */}
+        {/* Categories */}
         <section className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-foreground">Paint types</h2>
+          <h2 className="text-sm font-semibold text-foreground">Categories</h2>
           <p className="text-sm text-muted">
-            Rename a type or change its earning rate. A rate change only affects
-            new transactions, since past ones keep the rate they were recorded
-            with.
+            Set the kinds of products or services you sell and how many points
+            each earns. A rate change only affects new sales, since past ones
+            keep the rate they were recorded with.
           </p>
           <div className={`${card} px-6 py-2`}>
-            <PaintTypesForm paintTypes={paintTypes} />
+            <CategoriesForm categories={paintTypes} />
           </div>
         </section>
       </div>

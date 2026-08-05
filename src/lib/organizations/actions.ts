@@ -105,7 +105,7 @@ export async function createOrganization(
     return fail("Could not create the organization. Please try again.");
   }
 
-  // 2. Seed the starter paint types for this org.
+  // 2. Seed the starter categories for this org.
   const { error: seedError } = await supabase.from("paint_types").insert(
     DEFAULT_PAINT_TYPES.map((pt) => ({
       name: pt.name,
@@ -174,5 +174,38 @@ export async function setOrganizationActive(
 
   const supabase = await createClient();
   await supabase.from("organizations").update({ active }).eq("id", id);
+  revalidatePath("/admin");
+}
+
+/**
+ * Permanently delete an organization: its customers, transactions, categories,
+ * and its admin login all go with it. Super-admin only, and irreversible.
+ *
+ * We grab the org's login accounts first, then delete the org (the database
+ * cascades away all of its data and profile rows), then remove the leftover Auth
+ * logins via the admin API so no orphaned sign in remains.
+ */
+export async function deleteOrganization(id: string): Promise<void> {
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") return;
+
+  const supabase = await createClient();
+  const admin = createAdminClient();
+
+  const { data: members } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("organization_id", id);
+
+  const { error } = await supabase.from("organizations").delete().eq("id", id);
+  if (error) {
+    console.error("deleteOrganization: delete failed", error);
+    return;
+  }
+
+  for (const member of members ?? []) {
+    await admin.auth.admin.deleteUser(member.id);
+  }
+
   revalidatePath("/admin");
 }

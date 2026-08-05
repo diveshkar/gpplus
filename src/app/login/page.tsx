@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState } from "react";
 import { login, type LoginState } from "@/lib/auth/actions";
+import { PasswordInput } from "@/components/ui/password-input";
 
 const initialState: LoginState = { error: null };
 
@@ -33,31 +33,13 @@ export default function LoginPage() {
       {/* Overlays for contrast and a warm red wash */}
       <div className="absolute inset-0 bg-gradient-to-br from-black/92 via-black/82 to-[#3a0709]/88" />
       <div className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-brand/25 blur-3xl" />
-      <Image
-        src="/paintcanparnsparent.png"
-        alt=""
-        width={560}
-        height={560}
-        aria-hidden
-        className="pointer-events-none absolute -bottom-20 right-0 hidden h-[26rem] w-auto select-none opacity-[0.10] lg:block"
-      />
 
       {/* Content: brand lockup and form, side by side on desktop */}
       <div className="relative z-10 grid w-full max-w-5xl animate-fade-up items-center gap-12 lg:grid-cols-2 lg:gap-20">
         {/* Brand */}
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
-          <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-2xl">
-            <Image
-              src="/gpplus-mark.png"
-              alt="GP+"
-              width={72}
-              height={72}
-              priority
-              className="h-16 w-16 object-contain"
-            />
-          </div>
-          <p className="mt-8 text-xs font-semibold uppercase tracking-[0.25em] text-brand/90">
-            GP+ Loyalty
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-brand/90">
+            Loyalty System
           </p>
           <h1 className="mt-3 font-heading text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
             Welcome back
@@ -102,14 +84,14 @@ export default function LoginPage() {
               >
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 autoComplete="current-password"
                 required
                 placeholder="Your password"
                 className={fieldClass}
+                toggleClassName="text-neutral-400 hover:text-neutral-700"
               />
             </div>
 

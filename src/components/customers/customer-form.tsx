@@ -45,7 +45,7 @@ export function CustomerForm({
           required
           autoComplete="off"
           defaultValue={state.values.full_name}
-          placeholder="e.g. Nimal Perera"
+          placeholder="Customer Name"
           className={input}
         />
       </div>
@@ -82,7 +82,7 @@ export function CustomerForm({
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="default_paint_type_id" className={label}>
-          Customer type
+          Default category
         </label>
         <div className="relative">
           <select
@@ -93,7 +93,7 @@ export function CustomerForm({
             className={select}
           >
             <option value="" disabled>
-              Choose a paint type
+              Choose a category
             </option>
             {paintTypes.map((type) => (
               <option key={type.id} value={type.id}>
@@ -117,8 +117,8 @@ export function CustomerForm({
           </svg>
         </div>
         <p className="text-xs text-muted">
-          The paint type used to work out points by default. It can be changed
-          per transaction later.
+          The category used to work out points by default. It can be changed per
+          sale later.
         </p>
       </div>
 

@@ -69,7 +69,7 @@ async function CustomersResults({
           className={q ? "mb-2 h-44 w-72" : "mb-2 h-60 w-60"}
         />
         <p className="text-base font-semibold text-foreground">
-          {q ? "No customers match that search." : "Welcome to GP+ Loyalty"}
+          {q ? "No customers match that search." : "Welcome to your loyalty program"}
         </p>
         <p className="max-w-xs text-sm text-muted">
           {q

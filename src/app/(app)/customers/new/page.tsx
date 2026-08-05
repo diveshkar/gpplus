@@ -33,7 +33,7 @@ export default async function NewCustomerPage({
           tips={[
             "Only a name is required. Everything else can be added later.",
             "Scan or type their card number to link it from day one.",
-            "Choosing their usual paint type speeds up logging sales.",
+            "Choosing their usual category speeds up logging sales.",
           ]}
         />
       </div>

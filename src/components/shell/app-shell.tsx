@@ -130,6 +130,7 @@ function isActive(pathname: string, href: string): boolean {
 
 export function AppShell({
   userEmail,
+  displayName,
   paintTypes,
   config,
   logoUrl,
@@ -137,6 +138,7 @@ export function AppShell({
   children,
 }: {
   userEmail: string;
+  displayName: string;
   paintTypes: PaintTypeOption[];
   config: ScanConfig;
   logoUrl: string | null;
@@ -147,7 +149,8 @@ export function AppShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [pendingBarcode, setPendingBarcode] = useState<string | null>(null);
-  const logo = logoUrl || "/gpplus-mark.png";
+  const logo = logoUrl || "/loyalty-mark.svg";
+  const name = displayName?.trim() || "Loyalty";
 
   function openScan() {
     setDrawerOpen(false);
@@ -176,9 +179,9 @@ export function AppShell({
         className="flex items-center gap-3 px-1 py-1"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={logo} alt="GP+" className="h-12 w-12 object-contain" />
+        <img src={logo} alt="" aria-hidden className="h-12 w-12 object-contain" />
         <span className="font-heading text-lg font-semibold tracking-tight text-foreground">
-          GP+ Loyalty
+          {name}
         </span>
       </Link>
 
@@ -306,9 +309,9 @@ export function AppShell({
           </button>
           <span className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logo} alt="GP+" className="h-7 w-7 object-contain" />
+            <img src={logo} alt="" aria-hidden className="h-7 w-7 object-contain" />
             <span className="font-heading text-sm font-semibold tracking-tight text-foreground">
-              GP+ Loyalty
+              {name}
             </span>
           </span>
           <button

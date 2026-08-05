@@ -84,7 +84,7 @@ export async function GET(request: Request) {
   );
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "GP+ Loyalty";
+  workbook.creator = "Loyalty System";
   workbook.created = new Date();
 
   // --- Summary -------------------------------------------------------------
@@ -93,7 +93,7 @@ export async function GET(request: Request) {
     { key: "label", width: 32 },
     { key: "value", width: 28 },
   ];
-  summary.addRow({ label: "GP+ Loyalty export" }).font = { bold: true, size: 14 };
+  summary.addRow({ label: "Loyalty export" }).font = { bold: true, size: 14 };
   summary.addRow({ label: "Period", value: monthLabel(year, month) });
   summary.addRow({
     label: "Generated",
@@ -121,7 +121,7 @@ export async function GET(request: Request) {
     { header: "Customer", key: "customer", width: 24 },
     { header: "Description", key: "description", width: 30 },
     { header: "Amount (LKR)", key: "amount", width: 14 },
-    { header: "Paint type", key: "paint_type", width: 16 },
+    { header: "Category", key: "paint_type", width: 16 },
     { header: "Rate (%)", key: "rate", width: 10 },
     { header: "Points earned", key: "points", width: 14 },
     { header: "Voided", key: "voided", width: 10 },
@@ -171,7 +171,7 @@ export async function GET(request: Request) {
     { header: "Phone", key: "phone", width: 16 },
     { header: "Date of birth", key: "dob", width: 16 },
     { header: "Address", key: "address", width: 30 },
-    { header: "Default paint type", key: "type", width: 18 },
+    { header: "Default category", key: "type", width: 18 },
     { header: "Barcode", key: "barcode", width: 18 },
     { header: "Points balance", key: "balance", width: 16 },
     { header: "Registered", key: "registered", width: 16 },
@@ -196,7 +196,7 @@ export async function GET(request: Request) {
     { key: "a", width: 28 },
     { key: "b", width: 20 },
   ];
-  styleHeader(settingsSheet.addRow({ a: "Paint type", b: "Earning rate (%)" }));
+  styleHeader(settingsSheet.addRow({ a: "Category", b: "Earning rate (%)" }));
   for (const p of data.paintTypes) {
     settingsSheet.addRow({ a: p.name, b: p.earning_percentage });
   }
@@ -212,7 +212,7 @@ export async function GET(request: Request) {
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const filename = `gpplus-export-${year}-${String(month).padStart(2, "0")}.xlsx`;
+  const filename = `loyalty-export-${year}-${String(month).padStart(2, "0")}.xlsx`;
 
   return new Response(buffer, {
     status: 200,
