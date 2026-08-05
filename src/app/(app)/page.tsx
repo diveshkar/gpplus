@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentOrganization } from "@/lib/organizations/queries";
@@ -125,14 +124,6 @@ export default async function DashboardPage({
         <div
           className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand/30 blur-3xl"
           aria-hidden
-        />
-        <Image
-          src="/paintcanparnsparent.png"
-          alt=""
-          width={320}
-          height={320}
-          aria-hidden
-          className="pointer-events-none absolute -bottom-12 -right-6 hidden h-56 w-auto select-none opacity-20 sm:block"
         />
         <div className="relative">
           <p className="text-sm text-white/60">

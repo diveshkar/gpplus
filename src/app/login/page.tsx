@@ -14,25 +14,10 @@ export default function LoginPage() {
 
   return (
     <main className="relative flex min-h-screen flex-1 items-center justify-center overflow-hidden bg-black px-6 py-12">
-      {/* Cinematic background */}
-      <video
-        className="absolute inset-0 h-full w-full object-cover"
-        autoPlay
-        muted
-        loop
-        playsInline
-        poster="/6fb82d6b282bf00dbb281b144bacaf69.webp"
-        aria-hidden
-      >
-        <source
-          src="/large-thumbnail20250218-1298974-1yoh4ah.mp4"
-          type="video/mp4"
-        />
-      </video>
-
-      {/* Overlays for contrast and a warm red wash */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black/92 via-black/82 to-[#3a0709]/88" />
+      {/* Premium neutral background: a dark wash with a soft brand glow. */}
+      <div className="absolute inset-0 bg-gradient-to-br from-black via-[#141414] to-[#3a0709]/85" />
       <div className="pointer-events-none absolute -left-40 top-1/4 h-[28rem] w-[28rem] rounded-full bg-brand/25 blur-3xl" />
+      <div className="pointer-events-none absolute -right-40 bottom-0 h-[26rem] w-[26rem] rounded-full bg-brand/15 blur-3xl" />
 
       {/* Content: brand lockup and form, side by side on desktop */}
       <div className="relative z-10 grid w-full max-w-5xl animate-fade-up items-center gap-12 lg:grid-cols-2 lg:gap-20">
