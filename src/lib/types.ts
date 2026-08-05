@@ -65,11 +65,14 @@ export type Organization = {
 
 export type Role = "super_admin" | "org_admin";
 
-/** Extends a Supabase Auth user with a role and (for org admins) their org. */
+/** Extends a Supabase Auth user with a role, their org, and personal details. */
 export type Profile = {
   id: string;
   role: Role;
   organization_id: string | null;
+  full_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 };
