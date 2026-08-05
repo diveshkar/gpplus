@@ -177,6 +177,145 @@ export async function setOrganizationActive(
   revalidatePath("/admin");
 }
 
+export type EditOrgValues = {
+  name: string;
+  admin_name: string;
+  brand_color: string;
+  logo_url: string;
+  redemption_threshold: string;
+  redemption_value: string;
+};
+
+export type EditOrgState = {
+  error: string | null;
+  success: boolean;
+  values: EditOrgValues;
+};
+
+/**
+ * Edit an existing organization's name, branding, and settings. Super-admin
+ * only. Does not touch the admin login (see resetOrgAdminPassword for that).
+ */
+export async function updateOrganization(
+  _prev: EditOrgState,
+  formData: FormData,
+): Promise<EditOrgState> {
+  const id = String(formData.get("id") ?? "");
+  const values: EditOrgValues = {
+    name: String(formData.get("name") ?? "").trim(),
+    admin_name: String(formData.get("admin_name") ?? "").trim(),
+    brand_color: String(formData.get("brand_color") ?? "#c1121f").trim(),
+    logo_url: String(formData.get("logo_url") ?? ""),
+    redemption_threshold: String(
+      formData.get("redemption_threshold") ?? "",
+    ).trim(),
+    redemption_value: String(formData.get("redemption_value") ?? "").trim(),
+  };
+
+  const fail = (error: string): EditOrgState => ({
+    error,
+    success: false,
+    values,
+  });
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") {
+    return fail("You are not allowed to do this.");
+  }
+  if (!id) return fail("Missing the organization.");
+  if (!values.name) return fail("Please enter an organization name.");
+  if (!HEX_COLOR.test(values.brand_color)) {
+    return fail("Please choose a valid brand colour.");
+  }
+  const threshold = Number(values.redemption_threshold);
+  const value = Number(values.redemption_value);
+  if (Number.isNaN(threshold) || threshold < 0) {
+    return fail("Please enter a threshold of zero or more.");
+  }
+  if (Number.isNaN(value) || value <= 0) {
+    return fail("Please enter a redemption value greater than zero.");
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      name: values.name,
+      admin_name: values.admin_name || null,
+      brand_color: values.brand_color,
+      logo_url: values.logo_url || null,
+      redemption_threshold: threshold,
+      redemption_value: value,
+    })
+    .eq("id", id);
+
+  if (error) {
+    return fail("Could not save the organization. Please try again.");
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/", "layout");
+  return { error: null, success: true, values };
+}
+
+export type ResetPasswordState = {
+  error: string | null;
+  success: boolean;
+};
+
+/**
+ * Assign a new temporary password to an organization's admin login. Super-admin
+ * only. No email is involved, matching the manual reset flow.
+ */
+export async function resetOrgAdminPassword(
+  _prev: ResetPasswordState,
+  formData: FormData,
+): Promise<ResetPasswordState> {
+  const orgId = String(formData.get("org_id") ?? "");
+  const password = String(formData.get("password") ?? "");
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") {
+    return { error: "You are not allowed to do this.", success: false };
+  }
+  if (password.length < 8) {
+    return {
+      error: "The temporary password must be at least 8 characters.",
+      success: false,
+    };
+  }
+
+  const supabase = await createClient();
+  const admin = createAdminClient();
+
+  const { data: member } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("organization_id", orgId)
+    .eq("role", "org_admin")
+    .maybeSingle();
+
+  if (!member) {
+    return {
+      error: "No admin login was found for this organization.",
+      success: false,
+    };
+  }
+
+  const { error } = await admin.auth.admin.updateUserById(member.id, {
+    password,
+  });
+  if (error) {
+    console.error("resetOrgAdminPassword: failed", error);
+    return {
+      error: "Could not reset the password. Please try again.",
+      success: false,
+    };
+  }
+
+  return { error: null, success: true };
+}
+
 /**
  * Permanently delete an organization: its customers, transactions, categories,
  * and its admin login all go with it. Super-admin only, and irreversible.
