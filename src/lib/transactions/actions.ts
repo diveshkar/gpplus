@@ -24,7 +24,7 @@ function readEarnForm(formData: FormData): EarnFormValues {
 }
 
 function validateEarn(values: EarnFormValues): string | null {
-  if (!values.paint_type_id) return "Please choose a paint type.";
+  if (!values.paint_type_id) return "Please choose a category.";
   const amount = Number(values.amount);
   if (!values.amount || Number.isNaN(amount) || amount <= 0) {
     return "Please enter an amount greater than zero.";
@@ -60,7 +60,7 @@ export async function createEarnTransaction(
   }
 
   revalidatePath(`/customers/${customerId}`);
-  redirect(`/customers/${customerId}`);
+  redirect(`/customers/${customerId}?toast=earn_saved`);
 }
 
 /**
@@ -93,17 +93,17 @@ export async function editEarnTransaction(
   }
 
   revalidatePath(`/customers/${customerId}`);
-  redirect(`/customers/${customerId}`);
+  redirect(`/customers/${customerId}?toast=tx_updated`);
 }
 
 /**
  * Void (cancel) a transaction and reverse its effect on the balance. The row
  * stays in the record for audit.
  */
-export async function voidTransaction(formData: FormData): Promise<void> {
-  const transactionId = String(formData.get("transaction_id") ?? "");
-  const customerId = String(formData.get("customer_id") ?? "");
-
+export async function voidTransaction(
+  transactionId: string,
+  customerId: string,
+): Promise<void> {
   if (!transactionId || !customerId) return;
 
   const supabase = await createClient();

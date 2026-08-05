@@ -1,9 +1,13 @@
-import Image from "next/image";
+"use client";
+
+import { useLogo } from "@/components/shell/logo-context";
 
 /**
- * The single, consistent loading screen used across the app. A red ring turns
- * around the static GP+ mark, like a wheel, so the brand stays legible while it
- * spins. Used for route loading and full-screen waits.
+ * The custom, branded loading screen. A red arc turns around the current
+ * business logo (the uploaded one when available, otherwise the default mark)
+ * over a soft glow. Used inside a business's app, where its branding is known.
+ * For generic, common loading with no business branding, use DefaultLoadingScreen.
+ * In full screen mode it covers the entire viewport.
  */
 export function LoadingScreen({
   label = "Loading",
@@ -12,28 +16,39 @@ export function LoadingScreen({
   label?: string;
   fullScreen?: boolean;
 }) {
+  const logo = useLogo();
+
   return (
     <div
       className={[
-        "flex flex-col items-center justify-center gap-5",
-        fullScreen ? "min-h-screen" : "min-h-[60vh] flex-1",
+        "flex animate-fade-in flex-col items-center justify-center gap-7 bg-white",
+        fullScreen ? "fixed inset-0 z-[100]" : "min-h-[60vh] w-full flex-1",
       ].join(" ")}
     >
-      <div className="relative h-20 w-20">
-        <div className="absolute inset-0 rounded-full border-4 border-brand-soft border-t-brand animate-spin-slow" />
-        <div className="absolute inset-[0.6rem] flex items-center justify-center">
-          <Image
-            src="/gppluslogo-transparent.png"
-            alt=""
-            width={48}
-            height={48}
-            priority
-            className="h-full w-full object-contain"
-            aria-hidden
-          />
-        </div>
+      <div className="relative flex h-36 w-36 items-center justify-center">
+        <div
+          className="absolute inset-4 rounded-full bg-brand/10 blur-2xl"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 rounded-full border-[3px] border-brand-soft"
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-brand animate-spin-slow"
+          aria-hidden
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={logo}
+          alt=""
+          className="h-[5.5rem] w-[5.5rem] object-contain"
+          aria-hidden
+        />
       </div>
-      <p className="animate-fade-in text-sm font-medium text-muted">{label}</p>
+      {label ? (
+        <p className="text-sm font-medium text-muted">{label}</p>
+      ) : null}
     </div>
   );
 }

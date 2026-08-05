@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/ui/page-header";
+import { LottiePlayer } from "@/components/ui/lottie-player";
 import { getCustomerById } from "@/lib/customers/queries";
 import {
   getCustomerTransactions,
   expectedBalance,
 } from "@/lib/transactions/queries";
-import { getConfiguration } from "@/lib/settings/queries";
+import { getCurrentOrganization } from "@/lib/organizations/queries";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { formatDate, formatLKR, formatPoints } from "@/lib/format";
 import { btnPrimary, btnSecondary, card } from "@/lib/ui";
@@ -30,7 +32,7 @@ export default async function CustomerProfilePage({
   const [customer, transactions, config] = await Promise.all([
     getCustomerById(id),
     getCustomerTransactions(id),
-    getConfiguration(),
+    getCurrentOrganization(),
   ]);
 
   if (!customer) {
@@ -45,32 +47,22 @@ export default async function CustomerProfilePage({
   const firstName = customer.full_name.split(" ")[0];
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div>
-        <Link
-          href="/customers"
-          className="text-sm font-medium text-muted transition-colors hover:text-foreground"
-        >
-          Back to customers
-        </Link>
-      </div>
-
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-lg font-semibold text-brand-strong">
-          {customer.full_name.charAt(0).toUpperCase()}
-        </div>
-        <div className="min-w-0">
-          <h1 className="truncate font-heading text-2xl font-semibold tracking-tight text-foreground">
-            {customer.full_name}
-          </h1>
-          <p className="text-sm text-muted">
-            {customer.default_paint_type?.name
-              ? `${customer.default_paint_type.name} customer`
-              : "No customer type set"}
-          </p>
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title={customer.full_name}
+        description={
+          customer.default_paint_type?.name
+            ? `${customer.default_paint_type.name} customer`
+            : "No category set"
+        }
+        backHref="/customers"
+        backLabel="Back to customers"
+        leading={
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-lg font-semibold text-brand-strong">
+            {customer.full_name.charAt(0).toUpperCase()}
+          </div>
+        }
+      />
 
       {/* Drift warning (Rule 6) */}
       {hasDrift ? (
@@ -129,12 +121,29 @@ export default async function CustomerProfilePage({
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`/customers/${customer.id}/earn`} className={btnPrimary}>
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                strokeWidth="1.9"
+                strokeLinecap="round"
+              />
+            </svg>
             Add points
           </Link>
           <Link
             href={`/customers/${customer.id}/redeem`}
             className={btnSecondary}
           >
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+              <path
+                d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7ZM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7Z"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
             Redeem
           </Link>
         </div>
@@ -160,7 +169,11 @@ export default async function CustomerProfilePage({
       <div className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-foreground">Activity</h2>
         {transactions.length === 0 ? (
-          <div className={`${card} flex flex-col items-center gap-1 px-6 py-10 text-center`}>
+          <div className={`${card} flex flex-col items-center gap-1 px-6 py-8 text-center`}>
+            <LottiePlayer
+              src="/painting-and-decorating.json"
+              className="h-52 w-52"
+            />
             <p className="text-sm font-medium text-foreground">No activity yet</p>
             <p className="max-w-xs text-sm text-muted">
               Add points from a purchase, or scan their card to log a sale in one

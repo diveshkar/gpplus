@@ -1,5 +1,5 @@
-import { LoadingScreen } from "@/components/shell/loading-screen";
+import { DefaultLoadingScreen } from "@/components/shell/default-loading-screen";
 
 export default function Loading() {
-  return <LoadingScreen fullScreen label="Getting things ready" />;
+  return <DefaultLoadingScreen fullScreen />;
 }

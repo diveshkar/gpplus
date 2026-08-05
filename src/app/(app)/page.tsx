@@ -1,6 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { getConfiguration } from "@/lib/settings/queries";
+import { getCurrentOrganization } from "@/lib/organizations/queries";
 import {
   currentPeriod,
   getLiabilityPoints,
@@ -11,6 +12,7 @@ import { formatLKR, formatPoints } from "@/lib/format";
 import { card } from "@/lib/ui";
 import { MonthSelector } from "@/components/reports/month-selector";
 import { ExportButton } from "@/components/reports/export-button";
+import { LottiePlayer } from "@/components/ui/lottie-player";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -77,33 +79,60 @@ export default async function DashboardPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const name = user?.email?.split("@")[0] ?? "there";
 
   const [liabilityPoints, config, summary, topCustomers] = await Promise.all([
     getLiabilityPoints(),
-    getConfiguration(),
+    getCurrentOrganization(),
     getMonthlySummary(year, month),
     getTopCustomers(year, month),
   ]);
+
+  // Use the display name set in Settings; fall back to the email prefix.
+  const name =
+    config.admin_name?.trim() || user?.email?.split("@")[0] || "there";
 
   const liabilityWorth = liabilityPoints * config.redemption_value;
 
   return (
     <div className="flex flex-col gap-8">
-      <section>
-        <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
-          {greeting()}, {name}.
-        </h1>
-        <p className="mt-1.5 text-sm text-muted">
-          Here is how the loyalty program is doing.
-        </p>
-      </section>
+      <header className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-border bg-surface px-4 py-4 shadow-card sm:gap-4 sm:px-5">
+        <span
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand"
+          aria-hidden
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5">
+            <path
+              d="M4 13h6V4H4v9Zm0 7h6v-5H4v5Zm10 0h6v-9h-6v9Zm0-16v5h6V4h-6Z"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+        <div className="min-w-0">
+          <h1 className="truncate font-heading text-2xl font-semibold tracking-tight text-foreground">
+            {greeting()}, {name}.
+          </h1>
+          <p className="mt-0.5 text-sm text-muted">
+            Here is how the loyalty program is doing.
+          </p>
+        </div>
+      </header>
 
       {/* Liability hero */}
       <section className="relative overflow-hidden rounded-[var(--radius-lg)] bg-ink p-6 text-white shadow-card sm:p-7">
         <div
           className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-brand/30 blur-3xl"
           aria-hidden
+        />
+        <Image
+          src="/paintcanparnsparent.png"
+          alt=""
+          width={320}
+          height={320}
+          aria-hidden
+          className="pointer-events-none absolute -bottom-12 -right-6 hidden h-56 w-auto select-none opacity-20 sm:block"
         />
         <div className="relative">
           <p className="text-sm text-white/60">
@@ -162,7 +191,8 @@ export default async function DashboardPage({
           Top customers this period
         </h2>
         {topCustomers.length === 0 ? (
-          <div className={`${card} px-6 py-10 text-center`}>
+          <div className={`${card} flex flex-col items-center px-6 py-8 text-center`}>
+            <LottiePlayer src="/car-wash.json" className="h-44 w-72" />
             <p className="text-sm font-medium text-foreground">
               Nothing earned yet
             </p>

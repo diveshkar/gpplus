@@ -84,9 +84,8 @@ export async function getExportData(
         .select("name, earning_percentage")
         .order("name", { ascending: true }),
       supabase
-        .from("configuration")
+        .from("organizations")
         .select("redemption_threshold, redemption_value")
-        .eq("id", 1)
         .single(),
     ]);
 

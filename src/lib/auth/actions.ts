@@ -34,7 +34,7 @@ export async function login(
   }
 
   // redirect throws internally, so it must sit outside any try/catch.
-  redirect("/");
+  redirect("/?toast=logged_in");
 }
 
 /**
@@ -43,5 +43,5 @@ export async function login(
 export async function logout(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect("/login?toast=logged_out");
 }

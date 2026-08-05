@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useActionState } from "react";
 import {
   createRedeemTransaction,
   type RedeemFormState,
 } from "@/lib/transactions/actions";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatLKR, formatPoints } from "@/lib/format";
 import { btnPrimary, errorAlert, input, label } from "@/lib/ui";
 
@@ -42,6 +43,7 @@ export function RedeemForm({
     initialState,
   );
   const [amount, setAmount] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   const worth = balance * value;
   const belowThreshold = balance < threshold;
@@ -88,7 +90,7 @@ export function RedeemForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form ref={formRef} action={formAction} className="flex flex-col gap-5">
       <input type="hidden" name="customer_id" value={customerId} />
 
       <div className="rounded-lg border border-border bg-background px-4 py-3">
@@ -175,13 +177,37 @@ export function RedeemForm({
       ) : null}
 
       <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={pending || overBalance}
-          className={btnPrimary}
-        >
-          {pending ? "Saving..." : "Redeem"}
-        </button>
+        <ConfirmDialog
+          title="Confirm redemption"
+          description={
+            validAmount ? (
+              <>
+                Give a product worth{" "}
+                <span className="font-medium text-foreground">
+                  {formatLKR(numericAmount)}
+                </span>{" "}
+                and deduct{" "}
+                <span className="font-medium text-foreground">
+                  {formatPoints(pointsToDeduct)}
+                </span>{" "}
+                points. {formatPoints(remainingPoints)} points will remain.
+              </>
+            ) : (
+              "Please enter a valid amount first."
+            )
+          }
+          confirmLabel="Redeem"
+          onConfirm={() => formRef.current?.requestSubmit()}
+          trigger={
+            <button
+              type="button"
+              disabled={pending || overBalance || !validAmount}
+              className={btnPrimary}
+            >
+              {pending ? "Saving..." : "Redeem"}
+            </button>
+          }
+        />
         {cancel}
       </div>
     </form>

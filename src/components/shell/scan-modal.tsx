@@ -29,16 +29,34 @@ export function ScanModal({
   onClose,
   paintTypes,
   config,
+  autoBarcode,
 }: {
   onClose: () => void;
   paintTypes: PaintTypeOption[];
   config: ScanConfig;
+  autoBarcode?: string | null;
 }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [pending, startTransition] = useTransition();
   const [found, setFound] = useState<ScannedCustomer | null>(null);
   const [mode, setMode] = useState<"earn" | "redeem">("earn");
+  const autoRan = useRef(false);
+
+  function runLookup(value: string) {
+    const code = value.trim();
+    if (!code) return;
+
+    startTransition(async () => {
+      const result = await scanBarcode(code);
+      if (result.status === "found") {
+        setFound(result.customer);
+      } else if (result.status === "unknown") {
+        onClose();
+        router.push(`/scan/unknown?barcode=${encodeURIComponent(result.barcode)}`);
+      }
+    });
+  }
 
   // On open: focus the field and listen for Escape to close.
   useEffect(() => {
@@ -51,20 +69,19 @@ export function ScanModal({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [onClose]);
 
+  // When opened by a global scan, look the card up immediately.
+  useEffect(() => {
+    if (autoBarcode && !autoRan.current) {
+      autoRan.current = true;
+      runLookup(autoBarcode);
+    }
+    // runLookup is stable enough for this one-shot effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoBarcode]);
+
   function handleScan(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const value = inputRef.current?.value.trim() ?? "";
-    if (!value) return;
-
-    startTransition(async () => {
-      const result = await scanBarcode(value);
-      if (result.status === "found") {
-        setFound(result.customer);
-      } else if (result.status === "unknown") {
-        onClose();
-        router.push(`/scan/unknown?barcode=${encodeURIComponent(result.barcode)}`);
-      }
-    });
+    runLookup(inputRef.current?.value ?? "");
   }
 
   function backToScan() {

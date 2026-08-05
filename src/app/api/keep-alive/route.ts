@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Never cache this route — it must actually hit the database on every call.
+// Never cache this route; it must actually hit the database on every call.
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -13,7 +13,7 @@ export const runtime = "nodejs";
  * a tiny query resets Supabase's "idle" timer, so the free-tier project never
  * hits the ~7-day auto-pause, whether the shop is open or closed.
  *
- * This keeps the database AWAKE. It is NOT a backup — protecting the data is a
+ * This keeps the database AWAKE. It is NOT a backup; protecting the data is a
  * separate concern handled by the on-demand Excel export (Phase 6).
  */
 export async function GET() {
@@ -34,7 +34,7 @@ export async function GET() {
   // structured response (including "table not found" or "permission denied")
   // still proves the database was reached. That is all the keep-alive needs.
   const { error } = await supabase
-    .from("configuration")
+    .from("organizations")
     .select("*", { count: "exact", head: true });
 
   // Codes that still mean the database answered: undefined_table and

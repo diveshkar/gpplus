@@ -2,6 +2,20 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { card } from "@/lib/ui";
 
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+      <path
+        d="M3 10.5 12 3l9 7.5M5.25 9v10.5a.75.75 0 0 0 .75.75h3.75V15a1.5 1.5 0 0 1 1.5-1.5h1.5A1.5 1.5 0 0 1 14.25 15v5.25H18a.75.75 0 0 0 .75-.75V9"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /**
  * Reached when a scanned card matches nobody. The admin decides whether this is
  * a brand new customer, or an existing customer whose card was replaced (lost
@@ -19,7 +33,18 @@ export default async function UnknownScanPage({
   }
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
+    <div className="flex flex-col gap-6">
+      <div>
+        <Link
+          href="/"
+          aria-label="Back to dashboard"
+          title="Back to dashboard"
+          className="group inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-muted shadow-card transition-all hover:border-brand hover:text-brand active:scale-95"
+        >
+          <HomeIcon />
+        </Link>
+      </div>
+
       <div className="text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-brand-soft text-brand-strong">
           <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6" aria-hidden>
@@ -35,7 +60,7 @@ export default async function UnknownScanPage({
         <h1 className="mt-4 font-heading text-2xl font-semibold tracking-tight text-foreground">
           This card is not linked yet
         </h1>
-        <p className="mt-1.5 text-sm text-muted">
+        <p className="mx-auto mt-1.5 max-w-xl text-sm text-muted">
           The card{" "}
           <span className="font-medium text-foreground">{barcode}</span> does not
           match any customer. What would you like to do?

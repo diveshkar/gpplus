@@ -1,6 +1,7 @@
-import Link from "next/link";
 import { getPaintTypes } from "@/lib/customers/queries";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { PageHeader } from "@/components/ui/page-header";
+import { FormAside } from "@/components/ui/form-aside";
 import { card } from "@/lib/ui";
 
 export default async function NewCustomerPage({
@@ -12,24 +13,29 @@ export default async function NewCustomerPage({
   const paintTypes = await getPaintTypes();
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-6">
-      <div>
-        <Link
-          href="/customers"
-          className="text-sm font-medium text-muted transition-colors hover:text-foreground"
-        >
-          Back to customers
-        </Link>
-        <h1 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-foreground">
-          Add a customer
-        </h1>
-        <p className="mt-1 text-sm text-muted">
-          Register a new customer and, if you have their card, link it now.
-        </p>
-      </div>
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Add a customer"
+        description="Register a new customer and, if you have their card, link it now."
+        backHref="/customers"
+        backLabel="Back to customers"
+      />
 
-      <div className={`${card} p-6`}>
-        <CustomerForm paintTypes={paintTypes} initialBarcode={barcode} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className={`${card} p-6`}>
+          <CustomerForm paintTypes={paintTypes} initialBarcode={barcode} />
+        </div>
+
+        <FormAside
+          animation="/painting-and-decorating.json"
+          title="Welcome a new regular"
+          intro="Set them up once and every future visit earns points automatically."
+          tips={[
+            "Only a name is required. Everything else can be added later.",
+            "Scan or type their card number to link it from day one.",
+            "Choosing their usual category speeds up logging sales.",
+          ]}
+        />
       </div>
     </div>
   );

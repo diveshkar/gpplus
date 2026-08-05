@@ -44,10 +44,33 @@ export type Transaction = {
   updated_at: string;
 };
 
-export type Configuration = {
-  id: number;
+/**
+ * A tenant. Each organization carries its own branding and loyalty settings
+ * (its editable "template"), and every customer, transaction, and paint type
+ * belongs to exactly one. Mirrors public.organizations (migration 0009).
+ */
+export type Organization = {
+  id: string;
+  name: string;
+  slug: string | null;
+  logo_url: string | null;
+  admin_name: string | null;
+  brand_color: string;
   redemption_threshold: number;
   redemption_value: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Role = "super_admin" | "org_admin";
+
+/** Extends a Supabase Auth user with a role and (for org admins) their org. */
+export type Profile = {
+  id: string;
+  role: Role;
+  organization_id: string | null;
+  created_at: string;
   updated_at: string;
 };
 

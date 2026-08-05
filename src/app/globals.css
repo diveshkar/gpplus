@@ -8,17 +8,23 @@
 */
 
 :root {
-  /* Surfaces */
-  --background: #f5f4f2; /* page */
+  /* Surfaces. The page itself is white (see body); --background is the faint
+     fill used for inputs, hovers, and chips so they read on a white page. */
+  --page: #ffffff; /* clean white page */
+  --background: #f5f4f2; /* faint fill (inputs, hovers, chips) */
   --surface: #ffffff; /* cards, panels */
   --foreground: #0f0f0f; /* near-black ink, strong contrast */
   --muted: #6b6b6b; /* secondary text */
-  --border: #e7e5e2; /* hairlines */
+  --border: #eceae7; /* hairlines */
 
-  /* Brand: a confident red drawn from the logo, plus near-black */
+  /* Brand: a confident red drawn from the logo, plus near-black.
+     Only --brand is a raw colour; the strong/soft shades are derived from it,
+     so setting --brand per organization (see AppShell) recolours the whole app
+     with no other changes. color-mix resolves at use time, so the override on an
+     ancestor flows into these too. */
   --brand: #c1121f;
-  --brand-strong: #9a0e18;
-  --brand-soft: #fbeaeb;
+  --brand-strong: color-mix(in srgb, var(--brand), #000 18%);
+  --brand-soft: color-mix(in srgb, var(--brand) 8%, #fff);
   --brand-contrast: #ffffff;
   --ink: #0f0f0f;
 
@@ -56,7 +62,7 @@
 }
 
 body {
-  background: var(--background);
+  background: var(--page);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -120,6 +126,36 @@ body {
   animation: gp-spin 1.6s linear infinite;
 }
 
+/* Radix dialog enter animations. */
+@keyframes gp-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes gp-dialog-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.dialog-overlay[data-state="open"] {
+  animation: gp-overlay-in 0.15s ease-out;
+}
+
+.dialog-content[data-state="open"] {
+  animation: gp-dialog-in 0.16s ease-out;
+  will-change: transform, opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-up,
   .animate-fade-in {
@@ -127,5 +163,9 @@ body {
   }
   .animate-spin-slow {
     animation-duration: 3s;
+  }
+  .dialog-overlay[data-state="open"],
+  .dialog-content[data-state="open"] {
+    animation: none;
   }
 }

@@ -46,7 +46,7 @@ export async function createCustomer(
     return { error: "Please enter the customer's full name.", values };
   }
   if (!values.default_paint_type_id) {
-    return { error: "Please choose a customer type.", values };
+    return { error: "Please choose a category.", values };
   }
   if (!values.barcode_id) {
     return { error: "Please scan the customer's loyalty card.", values };
@@ -77,7 +77,7 @@ export async function createCustomer(
   }
 
   revalidatePath("/customers");
-  redirect(`/customers/${data.id}`);
+  redirect(`/customers/${data.id}?toast=customer_saved`);
 }
 
 export type ReassignState = {
@@ -115,6 +115,6 @@ export async function reassignBarcode(
 
   revalidatePath(`/customers/${customerId}`);
   revalidatePath("/customers");
-  redirect(`/customers/${customerId}`);
+  redirect(`/customers/${customerId}?toast=card_linked`);
 }
 
