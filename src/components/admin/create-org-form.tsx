@@ -32,6 +32,24 @@ export function CreateOrgForm() {
     initialState,
   );
   const [brandColor, setBrandColor] = useState(DEFAULT_BRAND);
+  const [categories, setCategories] = useState<
+    { name: string; earning_percentage: string }[]
+  >([
+    { name: "Standard", earning_percentage: "0.5" },
+    { name: "Premium", earning_percentage: "1" },
+  ]);
+
+  function updateCategory(index: number, key: "name" | "earning_percentage", value: string) {
+    setCategories((list) =>
+      list.map((c, i) => (i === index ? { ...c, [key]: value } : c)),
+    );
+  }
+  function addCategory() {
+    setCategories((list) => [...list, { name: "", earning_percentage: "" }]);
+  }
+  function removeCategory(index: number) {
+    setCategories((list) => list.filter((_, i) => i !== index));
+  }
 
   useEffect(() => {
     if (state.success) {
@@ -130,6 +148,69 @@ export function CreateOrgForm() {
             className={input}
           />
         </div>
+      </div>
+
+      {/* Starter categories */}
+      <div className="flex flex-col gap-2 border-t border-border pt-5">
+        <span className={label}>Categories</span>
+        <p className="text-sm text-muted">
+          The kinds of products or services this business sells, and the points
+          each earns. They can change these later in their own settings.
+        </p>
+        <div className="mt-1 flex flex-col gap-2">
+          {categories.map((cat, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={cat.name}
+                onChange={(e) => updateCategory(i, "name", e.target.value)}
+                placeholder="Category name"
+                className={`${input} flex-1`}
+              />
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={cat.earning_percentage}
+                onChange={(e) =>
+                  updateCategory(i, "earning_percentage", e.target.value)
+                }
+                placeholder="%"
+                className={`${input} w-24`}
+                aria-label="Earning rate percent"
+              />
+              <button
+                type="button"
+                onClick={() => removeCategory(i)}
+                aria-label="Remove category"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:border-danger hover:text-danger"
+              >
+                <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+                  <path
+                    d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={addCategory}
+          className="mt-1 self-start text-sm font-semibold text-brand hover:text-brand-strong"
+        >
+          + Add category
+        </button>
+        <input
+          type="hidden"
+          name="categories"
+          value={JSON.stringify(categories)}
+        />
       </div>
 
       <div className="mt-1 border-t border-border pt-5">

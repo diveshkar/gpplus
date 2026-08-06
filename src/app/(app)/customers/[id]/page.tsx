@@ -9,6 +9,7 @@ import {
 } from "@/lib/transactions/queries";
 import { getCurrentOrganization } from "@/lib/organizations/queries";
 import { TransactionList } from "@/components/transactions/transaction-list";
+import { ReportLostButton } from "@/components/cards/report-lost-button";
 import { formatDate, formatLKR, formatPoints } from "@/lib/format";
 import { btnPrimary, btnSecondary, card } from "@/lib/ui";
 
@@ -158,10 +159,17 @@ export default async function CustomerProfilePage({
             value={formatDate(customer.date_of_birth)}
           />
           <DetailRow label="Address" value={customer.address ?? "Not set"} />
-          <DetailRow
-            label="Card barcode"
-            value={customer.barcode_id ?? "No card linked"}
-          />
+          <div className="flex items-center justify-between gap-4 py-3">
+            <span className="text-sm text-muted">Card barcode</span>
+            <div className="flex items-center gap-3">
+              <span className="text-right text-sm font-medium text-foreground">
+                {customer.barcode_id ?? "No card linked"}
+              </span>
+              {customer.barcode_id ? (
+                <ReportLostButton customerId={customer.id} />
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 

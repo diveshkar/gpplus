@@ -105,9 +105,29 @@ export async function createOrganization(
     return fail("Could not create the organization. Please try again.");
   }
 
-  // 2. Seed the starter categories for this org.
+  // 2. Seed the categories chosen at creation (or the defaults if none given).
+  let categories: { name: string; earning_percentage: number }[] = [];
+  try {
+    const raw = JSON.parse(String(formData.get("categories") ?? "[]"));
+    if (Array.isArray(raw)) {
+      const seen = new Set<string>();
+      for (const c of raw) {
+        const name = String(c?.name ?? "").trim();
+        const rate = Number(c?.earning_percentage);
+        const key = name.toLowerCase();
+        if (name && Number.isFinite(rate) && rate >= 0 && !seen.has(key)) {
+          seen.add(key);
+          categories.push({ name, earning_percentage: rate });
+        }
+      }
+    }
+  } catch {
+    categories = [];
+  }
+  if (categories.length === 0) categories = DEFAULT_PAINT_TYPES;
+
   const { error: seedError } = await supabase.from("paint_types").insert(
-    DEFAULT_PAINT_TYPES.map((pt) => ({
+    categories.map((pt) => ({
       name: pt.name,
       earning_percentage: pt.earning_percentage,
       organization_id: org.id,
