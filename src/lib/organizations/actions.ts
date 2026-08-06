@@ -90,6 +90,9 @@ export async function createOrganization(
 
   // The card feature is opt-in: only on if the super admin ticked the box.
   const cardsEnabled = formData.get("cards_enabled") === "on";
+  // Optional logo: the LogoUpload field has already stored it in the "logos"
+  // bucket and handed us its public URL. Empty means "use the default mark".
+  const logoUrl = String(formData.get("logo_url") ?? "").trim();
 
   // 1. Create the organization (RLS allows this for the super admin).
   const { data: org, error: orgError } = await supabase
@@ -98,6 +101,7 @@ export async function createOrganization(
       name: values.name,
       admin_name: values.admin_name || null,
       brand_color: values.brand_color,
+      logo_url: logoUrl || null,
       redemption_threshold: threshold,
       redemption_value: value,
       cards_enabled: cardsEnabled,
