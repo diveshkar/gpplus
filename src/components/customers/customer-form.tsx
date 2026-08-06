@@ -4,36 +4,51 @@ import Link from "next/link";
 import { useActionState } from "react";
 import {
   createCustomer,
+  updateCustomer,
   type CustomerFormState,
+  type CustomerFormValues,
 } from "@/lib/customers/actions";
 import { btnPrimary, errorAlert, input, label, select } from "@/lib/ui";
 
 export function CustomerForm({
   paintTypes,
-  initialBarcode,
+  initialBarcode = "",
+  mode = "create",
+  customerId,
+  initialValues,
+  cancelHref = "/customers",
 }: {
   paintTypes: { id: string; name: string }[];
-  initialBarcode: string;
+  initialBarcode?: string;
+  mode?: "create" | "edit";
+  customerId?: string;
+  initialValues?: CustomerFormValues;
+  cancelHref?: string;
 }) {
+  const isEdit = mode === "edit";
   const initialState: CustomerFormState = {
     error: null,
-    values: {
-      full_name: "",
-      address: "",
-      date_of_birth: "",
-      phone_number: "",
-      default_paint_type_id: "",
-      barcode_id: initialBarcode,
-    },
+    values:
+      initialValues ?? {
+        full_name: "",
+        address: "",
+        date_of_birth: "",
+        phone_number: "",
+        default_paint_type_id: "",
+        barcode_id: initialBarcode,
+      },
   };
 
   const [state, formAction, pending] = useActionState(
-    createCustomer,
+    isEdit ? updateCustomer : createCustomer,
     initialState,
   );
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
+      {isEdit && customerId ? (
+        <input type="hidden" name="customer_id" value={customerId} />
+      ) : null}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="full_name" className={label}>
           Full name
@@ -136,30 +151,32 @@ export function CustomerForm({
         />
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="barcode_id" className={label}>
-          Loyalty card barcode
-        </label>
-        <input
-          id="barcode_id"
-          name="barcode_id"
-          type="text"
-          required
-          autoComplete="off"
-          defaultValue={state.values.barcode_id}
-          placeholder="Scan the customer's card"
-          className={input}
-        />
-        {initialBarcode ? (
-          <p className="text-xs text-success">
-            Card detected from scan and filled in for you.
-          </p>
-        ) : (
-          <p className="text-xs text-muted">
-            Scan the card to link it to this customer permanently.
-          </p>
-        )}
-      </div>
+      {!isEdit ? (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="barcode_id" className={label}>
+            Loyalty card barcode
+          </label>
+          <input
+            id="barcode_id"
+            name="barcode_id"
+            type="text"
+            required
+            autoComplete="off"
+            defaultValue={state.values.barcode_id}
+            placeholder="Scan the customer's card"
+            className={input}
+          />
+          {initialBarcode ? (
+            <p className="text-xs text-success">
+              Card detected from scan and filled in for you.
+            </p>
+          ) : (
+            <p className="text-xs text-muted">
+              Scan the card to link it to this customer permanently.
+            </p>
+          )}
+        </div>
+      ) : null}
 
       {state.error ? (
         <p role="alert" className={errorAlert}>
@@ -190,12 +207,12 @@ export function CustomerForm({
                   strokeLinejoin="round"
                 />
               </svg>
-              Save customer
+              {isEdit ? "Save changes" : "Save customer"}
             </>
           )}
         </button>
         <Link
-          href="/customers"
+          href={cancelHref}
           className="text-sm font-medium text-muted transition-colors hover:text-foreground"
         >
           Cancel

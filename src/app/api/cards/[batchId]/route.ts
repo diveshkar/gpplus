@@ -1,4 +1,10 @@
-import { PDFDocument, StandardFonts, rgb, type PDFImage } from "pdf-lib";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFImage,
+  type PDFFont,
+} from "pdf-lib";
 import ExcelJS from "exceljs";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentOrganization } from "@/lib/organizations/queries";
@@ -17,6 +23,29 @@ function hexColor(hex: string) {
   if (!match) return rgb(0.76, 0.07, 0.12);
   const n = parseInt(match[1], 16);
   return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255);
+}
+
+/** Break text into lines that fit maxWidth at the given font size. */
+function wrapText(
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const test = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(test, size) > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
 }
 
 export async function GET(
@@ -77,16 +106,32 @@ export async function GET(
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const brand = hexColor(org.brand_color);
   const businessName = (org.admin_name?.trim() || org.name || "Loyalty").trim();
+  const cardTitle = org.card_title?.trim() || "Member Card";
+  const cardTagline = org.card_tagline?.trim() || "";
+  const backEnabled = org.card_back_enabled;
+  const backText = org.card_back_text?.trim() || "";
 
-  // Embed the business logo if it is a data-URL image.
+  // Embed the business logo, whether it is a bucket URL or a legacy data URL.
   let logo: PDFImage | null = null;
-  if (org.logo_url && org.logo_url.startsWith("data:image")) {
+  if (org.logo_url) {
     try {
-      const [meta, b64] = org.logo_url.split(",");
-      const bytes = Buffer.from(b64, "base64");
-      logo = meta.includes("jpeg") || meta.includes("jpg")
-        ? await pdf.embedJpg(bytes)
-        : await pdf.embedPng(bytes);
+      let bytes: Uint8Array;
+      let isJpg = false;
+      if (org.logo_url.startsWith("data:image")) {
+        const [meta, b64] = org.logo_url.split(",");
+        isJpg = meta.includes("jpeg") || meta.includes("jpg");
+        bytes = Buffer.from(b64, "base64");
+      } else {
+        const res = await fetch(org.logo_url);
+        const contentType = res.headers.get("content-type") ?? "";
+        const lowered = org.logo_url.toLowerCase();
+        isJpg =
+          contentType.includes("jpeg") ||
+          lowered.endsWith(".jpg") ||
+          lowered.endsWith(".jpeg");
+        bytes = new Uint8Array(await res.arrayBuffer());
+      }
+      logo = isJpg ? await pdf.embedJpg(bytes) : await pdf.embedPng(bytes);
     } catch {
       logo = null;
     }
@@ -130,15 +175,23 @@ export async function GET(
       color: rgb(1, 1, 1),
     });
 
-    // "Loyalty member card" label.
-    const label = "LOYALTY MEMBER CARD";
-    page.drawText(label, {
+    // Card title and optional tagline.
+    page.drawText(cardTitle.toUpperCase(), {
       x: (BLEED + 4) * MM,
-      y: pageH - barH - 14,
-      size: 7,
-      font: regular,
-      color: rgb(0.42, 0.42, 0.42),
+      y: pageH - barH - 15,
+      size: 7.5,
+      font: bold,
+      color: rgb(0.35, 0.35, 0.35),
     });
+    if (cardTagline) {
+      page.drawText(cardTagline, {
+        x: (BLEED + 4) * MM,
+        y: pageH - barH - 27,
+        size: 7,
+        font: regular,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+    }
 
     // Barcode.
     const barcode = code128(card.code);
@@ -176,6 +229,74 @@ export async function GET(
       height: 2 * MM,
       color: brand,
     });
+
+    // Back of the card (optional).
+    if (backEnabled) {
+      const back = pdf.addPage([pageW, pageH]);
+
+      back.drawRectangle({
+        x: 0,
+        y: pageH - barH,
+        width: pageW,
+        height: barH,
+        color: brand,
+      });
+
+      let backNameX = (BLEED + 4) * MM;
+      if (logo) {
+        const size = barH * 0.62;
+        const ratio = logo.width / logo.height;
+        const w = size * ratio;
+        back.drawImage(logo, {
+          x: (BLEED + 3) * MM,
+          y: pageH - barH + (barH - size) / 2,
+          width: w,
+          height: size,
+        });
+        backNameX = (BLEED + 3) * MM + w + 5;
+      }
+      back.drawText(businessName, {
+        x: backNameX,
+        y: pageH - barH / 2 - 5,
+        size: 11,
+        font: bold,
+        color: rgb(1, 1, 1),
+      });
+
+      const contentX = (BLEED + 4) * MM;
+      const contentW = pageW - contentX * 2;
+      const text =
+        backText ||
+        "Show this card on each visit to earn and redeem points.";
+      const size = 8;
+      const lineH = 11;
+      let y = pageH - barH - 20;
+      for (const paragraph of text.split(/\r?\n/)) {
+        const lines =
+          paragraph.trim() === ""
+            ? [""]
+            : wrapText(paragraph, regular, size, contentW);
+        for (const line of lines) {
+          if (y < (BLEED + 6) * MM) break;
+          back.drawText(line, {
+            x: contentX,
+            y,
+            size,
+            font: regular,
+            color: rgb(0.2, 0.2, 0.2),
+          });
+          y -= lineH;
+        }
+      }
+
+      back.drawRectangle({
+        x: 0,
+        y: BLEED * MM,
+        width: pageW,
+        height: 2 * MM,
+        color: brand,
+      });
+    }
   }
 
   const bytes = await pdf.save();

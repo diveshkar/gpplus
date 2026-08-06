@@ -1,18 +1,30 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/auth/profile";
 import type { Organization } from "@/lib/types";
 
 /**
  * The signed-in org admin's own organization (its settings + branding).
- * RLS scopes the row to their org, so a plain single() returns exactly theirs.
+ * RLS scopes rows to their org, so this returns exactly theirs.
+ *
+ * If there is no org for the caller (for example a super admin, whose layout is
+ * mid-redirect to /admin, or an account with no org), we redirect instead of
+ * throwing. That avoids a hard crash and the noisy "0 rows" error during a
+ * render that is being discarded anyway.
  */
 export async function getCurrentOrganization(): Promise<Organization> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("organizations")
     .select("*")
-    .single();
+    .limit(1)
+    .maybeSingle();
 
-  if (error) throw error;
+  if (!data) {
+    const profile = await getProfile();
+    redirect(profile?.role === "super_admin" ? "/admin" : "/login?toast=no_org");
+  }
+
   return data as Organization;
 }
 

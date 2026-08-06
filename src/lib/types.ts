@@ -52,27 +52,27 @@ export type Transaction = {
 export type Organization = {
   id: string;
   name: string;
-  slug: string | null;
   logo_url: string | null;
   admin_name: string | null;
   brand_color: string;
   redemption_threshold: number;
   redemption_value: number;
   active: boolean;
+  card_title: string | null;
+  card_tagline: string | null;
+  card_back_enabled: boolean;
+  card_back_text: string | null;
   created_at: string;
   updated_at: string;
 };
 
 export type Role = "super_admin" | "org_admin";
 
-/** Extends a Supabase Auth user with a role, their org, and personal details. */
+/** Extends a Supabase Auth user with a role and their organization. */
 export type Profile = {
   id: string;
   role: Role;
   organization_id: string | null;
-  full_name: string | null;
-  phone: string | null;
-  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 };

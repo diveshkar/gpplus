@@ -27,11 +27,11 @@ see each other's data.
 
 ## Database migrations (run in order)
 
-`0001`-`0008` core single-shop schema and functions; `0009` multi-tenant
-foundation; `0010` admin profiles and platform stats; `0011` isolation
-hardening; `0012` performance indexes; `0013` function hardening; `0014` card
-pool. All are in `supabase/migrations/` and are run by hand in the Supabase SQL
-editor, in order, on each project.
+`0001`-`0008` core schema and functions; `0009` multi-tenant foundation; `0010`
+platform stats; `0011` isolation hardening; `0012` performance indexes; `0013`
+function hardening; `0014` card pool; `0015` auto-enable RLS on new tables;
+`0016` card-design columns. All are in `supabase/migrations/` and are run by hand in the Supabase SQL editor, in
+order, on each project.
 
 ## Status
 
@@ -54,11 +54,13 @@ Done:
 - Loading screens: branded loader inside a business, a default animation for
   common areas; centred correctly on mobile.
 
+- **Card design v2:** logos upload to a Supabase Storage bucket (`logos`, public)
+  and are stored as URLs (migration none; app change); a business customizes the
+  card (title, tagline, optional back with text) on the Cards page; the PDF
+  outputs front and back; barcode numbers stay an Excel export. Migration `0016`
+  adds the card-design columns. Requires the `logos` bucket to exist.
+
 Next / planned:
-- **Card design v2 (see decisions below):** move logo upload to a Supabase
-  Storage bucket and use its URL; a custom card designer so a business can adjust
-  the card appearance; PDF outputs the **front and back** of the card; barcode
-  numbers stay an Excel export.
 - **Region migration:** move Supabase from Tokyo to Singapore for lower latency.
 - **End-to-end verification** before onboarding real businesses.
 - **Go-live:** production Supabase project, run all migrations, create the super

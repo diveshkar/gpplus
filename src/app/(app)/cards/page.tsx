@@ -1,5 +1,7 @@
 import { getCardStats, getCardBatches } from "@/lib/cards/queries";
+import { getCurrentOrganization } from "@/lib/organizations/queries";
 import { GenerateCards } from "@/components/cards/generate-cards";
+import { CardDesignForm } from "@/components/cards/card-design-form";
 import { PageHeader } from "@/components/ui/page-header";
 import { formatDate } from "@/lib/format";
 import { card } from "@/lib/ui";
@@ -29,9 +31,10 @@ function StatTile({
 }
 
 export default async function CardsPage() {
-  const [stats, batches] = await Promise.all([
+  const [stats, batches, org] = await Promise.all([
     getCardStats(),
     getCardBatches(),
+    getCurrentOrganization(),
   ]);
 
   return (
@@ -48,6 +51,19 @@ export default async function CardsPage() {
         <StatTile label="Unused" value={stats.unused} />
         <StatTile label="Lost" value={stats.lost} />
       </div>
+
+      {/* Card design */}
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-foreground">Card design</h2>
+        <div className={`${card} p-6`}>
+          <CardDesignForm
+            title={org.card_title ?? ""}
+            tagline={org.card_tagline ?? ""}
+            backEnabled={org.card_back_enabled}
+            backText={org.card_back_text ?? ""}
+          />
+        </div>
+      </section>
 
       {/* Generate */}
       <section className="flex flex-col gap-3">

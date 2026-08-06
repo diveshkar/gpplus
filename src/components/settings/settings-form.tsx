@@ -1,40 +1,10 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
-import {
-  updateSettings,
-  type SettingsState,
-} from "@/lib/settings/actions";
-import { btnPrimary, btnSecondary, errorAlert, input, label } from "@/lib/ui";
-
-const DEFAULT_LOGO = "/loyalty-mark.svg";
-
-// Resize a chosen image to a small PNG data URL so the stored logo stays light.
-function fileToResizedDataUrl(file: File, max = 256): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Could not read the file"));
-    reader.onload = () => {
-      const img = document.createElement("img");
-      img.onerror = () => reject(new Error("Could not load the image"));
-      img.onload = () => {
-        const scale = Math.min(1, max / Math.max(img.width, img.height));
-        const width = Math.round(img.width * scale);
-        const height = Math.round(img.height * scale);
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("Canvas not supported"));
-        ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/png"));
-      };
-      img.src = String(reader.result);
-    };
-    reader.readAsDataURL(file);
-  });
-}
+import { updateSettings, type SettingsState } from "@/lib/settings/actions";
+import { LogoUpload } from "@/components/ui/logo-upload";
+import { btnPrimary, errorAlert, input, label } from "@/lib/ui";
 
 const DEFAULT_BRAND = "#c1121f";
 
@@ -67,24 +37,9 @@ export function SettingsForm({
     initialState,
   );
 
-  const [logo, setLogo] = useState(initialLogo);
   const [brandColor, setBrandColor] = useState(
     initialBrandColor || DEFAULT_BRAND,
   );
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  async function handleLogoFile(file: File) {
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file");
-      return;
-    }
-    try {
-      const dataUrl = await fileToResizedDataUrl(file);
-      setLogo(dataUrl);
-    } catch {
-      toast.error("Could not process that image");
-    }
-  }
 
   useEffect(() => {
     if (state.success) toast.success("Settings saved");
@@ -92,54 +47,11 @@ export function SettingsForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
-      {/* Brand logo */}
-      <div className="flex flex-col gap-2">
-        <span className={label}>Brand logo</span>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-border bg-white">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={logo || DEFAULT_LOGO}
-              alt="Logo preview"
-              className="h-12 w-12 object-contain"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className={`${btnSecondary} h-10`}
-            >
-              Upload logo
-            </button>
-            {logo ? (
-              <button
-                type="button"
-                onClick={() => setLogo("")}
-                className="inline-flex h-10 items-center rounded-xl px-3 text-sm font-medium text-muted transition-colors hover:text-foreground"
-              >
-                Reset to default
-              </button>
-            ) : null}
-          </div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) handleLogoFile(file);
-              event.target.value = "";
-            }}
-          />
-        </div>
-        <p className="text-xs text-muted">
-          Shown in the sidebar, mobile header, and loading screen. A square image
-          works best. The login screen keeps the default mark.
-        </p>
-        <input type="hidden" name="logo_url" value={logo} />
-      </div>
+      <LogoUpload
+        name="logo_url"
+        initialUrl={initialLogo}
+        helpText="Shown in the sidebar, mobile header, loading screen, and on printed cards. A square image works best."
+      />
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="admin_name" className={label}>

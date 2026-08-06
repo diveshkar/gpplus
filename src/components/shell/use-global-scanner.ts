@@ -40,7 +40,9 @@ export function useGlobalScanner(onScan: (code: string) => void) {
   useEffect(() => {
     let buffer = "";
     let lastTime = 0;
-    const RESET_GAP_MS = 60; // scanners are far faster than this between keys
+    // Scanners type much faster than a human, but keep this generous so slower
+    // USB scanners still register as one burst rather than being split up.
+    const RESET_GAP_MS = 120;
     const MIN_LENGTH = 3;
 
     function handler(event: KeyboardEvent) {

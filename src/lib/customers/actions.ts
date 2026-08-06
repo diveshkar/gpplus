@@ -94,6 +94,51 @@ export async function createCustomer(
   redirect(`/customers/${data.id}?toast=customer_saved`);
 }
 
+/**
+ * Update an existing customer's details. The card (barcode) is not changed here;
+ * that is handled by the lost-card and replacement flow.
+ */
+export async function updateCustomer(
+  _prev: CustomerFormState,
+  formData: FormData,
+): Promise<CustomerFormState> {
+  const id = String(formData.get("customer_id") ?? "");
+  const values = readCustomerForm(formData);
+
+  if (!id) {
+    return { error: "Missing the customer.", values };
+  }
+  if (!values.full_name) {
+    return { error: "Please enter the customer's full name.", values };
+  }
+  if (!values.default_paint_type_id) {
+    return { error: "Please choose a category.", values };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("customers")
+    .update({
+      full_name: values.full_name,
+      address: values.address || null,
+      date_of_birth: values.date_of_birth || null,
+      phone_number: values.phone_number || null,
+      default_paint_type_id: values.default_paint_type_id,
+    })
+    .eq("id", id);
+
+  if (error) {
+    return {
+      error: "Something went wrong saving this customer. Please try again.",
+      values,
+    };
+  }
+
+  revalidatePath(`/customers/${id}`);
+  revalidatePath("/customers");
+  redirect(`/customers/${id}?toast=customer_saved`);
+}
+
 export type ReassignState = {
   error: string | null;
 };

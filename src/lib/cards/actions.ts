@@ -76,6 +76,48 @@ export async function generateCards(
   return { error: null, batchId, count: rows.length };
 }
 
+export type CardDesignState = {
+  error: string | null;
+  success: boolean;
+};
+
+/**
+ * Save the business's card design (title, tagline, and the optional back).
+ * Branding (logo, colour, name) is set elsewhere and reused for the card.
+ */
+export async function updateCardDesign(
+  _prev: CardDesignState,
+  formData: FormData,
+): Promise<CardDesignState> {
+  const profile = await getProfile();
+  if (!profile?.organization_id) {
+    return { error: "You are not allowed to do this.", success: false };
+  }
+
+  const card_title = String(formData.get("card_title") ?? "").trim();
+  const card_tagline = String(formData.get("card_tagline") ?? "").trim();
+  const card_back_enabled = formData.get("card_back_enabled") === "on";
+  const card_back_text = String(formData.get("card_back_text") ?? "").trim();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("organizations")
+    .update({
+      card_title: card_title || null,
+      card_tagline: card_tagline || null,
+      card_back_enabled,
+      card_back_text: card_back_text || null,
+    })
+    .eq("id", profile.organization_id);
+
+  if (error) {
+    return { error: "Could not save the card design. Please try again.", success: false };
+  }
+
+  revalidatePath("/cards");
+  return { error: null, success: true };
+}
+
 /**
  * Report a customer's card as lost: mark it lost in the pool and unlink it from
  * the customer, so they can be given a replacement. Their points are untouched.

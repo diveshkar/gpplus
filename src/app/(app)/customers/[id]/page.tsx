@@ -63,6 +63,20 @@ export default async function CustomerProfilePage({
             {customer.full_name.charAt(0).toUpperCase()}
           </div>
         }
+        actions={
+          <Link href={`/customers/${customer.id}/edit`} className={btnSecondary}>
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+              <path
+                d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Edit
+          </Link>
+        }
       />
 
       {/* Drift warning (Rule 6) */}

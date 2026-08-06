@@ -33,7 +33,6 @@
 create table if not exists public.organizations (
   id                   uuid primary key default gen_random_uuid(),
   name                 text not null,
-  slug                 text unique,
   logo_url             text,
   admin_name           text,
   brand_color          text not null default '#c1121f',
@@ -137,11 +136,10 @@ begin
     end if;
 
     insert into public.organizations (
-      name, slug, logo_url, admin_name, redemption_threshold, redemption_value
+      name, logo_url, admin_name, redemption_threshold, redemption_value
     )
     values (
       'GP+',
-      'gp-plus',
       v_logo,
       v_admin_name,
       coalesce(v_threshold, 10000),
