@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Loyalty Card Generator</title>
+<style>
+  :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #141414; background: #f5f4f2; }
+
+  .controls {
+    position: sticky; top: 0; z-index: 10;
+    background: #fff; border-bottom: 1px solid #e6e4e1;
+    padding: 16px 20px;
+  }
+  .controls h1 { font-size: 18px; margin: 0 0 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; }
+  .field { display: flex; flex-direction: column; gap: 4px; }
+  .field label { font-size: 12px; color: #6b6b6b; }
+  .field input { height: 36px; padding: 0 10px; border: 1px solid #d9d7d4; border-radius: 8px; font-size: 14px; }
+  .field input[type="number"] { width: 110px; }
+  button {
+    height: 36px; padding: 0 16px; border: 0; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  #gen { background: #141414; color: #fff; }
+  #print { background: #c1121f; color: #fff; }
+  .hint { font-size: 12px; color: #6b6b6b; margin: 12px 0 0; }
+  #count-note { font-size: 12px; color: #6b6b6b; margin-left: auto; }
+
+  .sheet { padding: 16px 20px 40px; }
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8mm; }
+  .card {
+    border: 1px solid #cfcdca; border-radius: 10px; padding: 10px 12px 8px;
+    background: #fff; text-align: center; break-inside: avoid; page-break-inside: avoid;
+  }
+  .card .biz { font-size: 12px; font-weight: 700; letter-spacing: .02em; }
+  .card .barcode { margin: 8px 0 4px; }
+  .card .barcode svg { display: block; width: 100%; height: 52px; }
+  .card .code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; letter-spacing: .12em; }
+  .card .note { font-size: 9px; color: #6b6b6b; margin-top: 4px; }
+
+  @media print {
+    body { background: #fff; }
+    .controls { display: none; }
+    .sheet { padding: 0; }
+    .cards { gap: 6mm; }
+    @page { margin: 10mm; }
+  }
+</style>
+</head>
+<body>
+  <div class="controls">
+    <h1>Loyalty card generator</h1>
+    <div class="row">
+      <div class="field">
+        <label for="biz">Business name</label>
+        <input id="biz" value="Loyalty Program" />
+      </div>
+      <div class="field">
+        <label for="format">Numbering</label>
+        <select id="format" style="height:36px;padding:0 10px;border:1px solid #d9d7d4;border-radius:8px;font-size:14px;background:#fff;">
+          <option value="sequential">Sequential (C0001)</option>
+          <option value="random">Random unique (C7F3K9Q2)</option>
+          <option value="uuid">Full UUID (long)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="prefix">Card prefix</label>
+        <input id="prefix" value="C" />
+      </div>
+      <div class="field">
+        <label for="start">Start number</label>
+        <input id="start" type="number" value="1" min="0" />
+      </div>
+      <div class="field">
+        <label for="count">How many cards</label>
+        <input id="count" type="number" value="200" min="1" max="2000" />
+      </div>
+      <div class="field">
+        <label for="digits">Number length</label>
+        <input id="digits" type="number" value="4" min="1" max="10" />
+      </div>
+      <div class="field" style="flex:1; min-width:220px;">
+        <label for="note">Small note on card</label>
+        <input id="note" value="Scan on your first visit to register" />
+      </div>
+      <button id="gen" type="button">Generate</button>
+      <button id="print" type="button" onclick="window.print()">Print</button>
+      <span id="count-note"></span>
+    </div>
+    <p class="hint">
+      Each card gets a unique barcode. Print and hand them out. The first time a card is scanned,
+      the app will ask you to register that customer, and the card becomes theirs.
+    </p>
+  </div>
+
+  <div class="sheet">
+    <div class="cards" id="cards"></div>
+  </div>
+
+<script>
+// ---------------------------------------------------------------------------
+// Code 128 (Code Set B) encoder. Self-contained, so this file needs no internet
+// and produces standard barcodes any USB scanner reads.
+// ---------------------------------------------------------------------------
+var CODE128 = ["212222","222122","222221","121223","121322","131222","122213","122312","132212","221213","221312","231212","112232","122132","122231","113222","123122","123221","223211","221132","221231","213212","223112","312131","311222","321122","321221","312212","322112","322211","212123","212321","232121","111323","131123","131321","112313","132113","132311","211313","231113","231311","112133","112331","132131","113123","113321","133121","313121","211331","231131","213113","213311","213131","311123","311321","331121","312113","312311","332111","314111","221411","431111","111224","111422","121124","121421","141122","141221","112214","112412","122114","122411","142112","142211","241211","221114","413111","241112","134111","111242","121142","121241","114212","124112","124211","411212","421112","421211","212141","214121","412121","111143","111341","131141","114113","114311","411113","411311","113141","114131","311141","411131","211412","211214","211232","2331112"];
+
+function code128Svg(text) {
+  var quiet = 10, moduleW = 2, height = 100;
+  var values = [104]; // Start B
+  var sum = 104;
+  for (var i = 0; i < text.length; i++) {
+    var v = text.charCodeAt(i) - 32;
+    values.push(v);
+    sum += v * (i + 1);
+  }
+  values.push(sum % 103); // checksum
+  values.push(106);       // Stop
+
+  var totalModules = quiet * 2;
+  for (var j = 0; j < values.length; j++) {
+    var p = CODE128[values[j]];
+    for (var k = 0; k < p.length; k++) totalModules += (+p[k]);
+  }
+
+  var width = totalModules * moduleW;
+  var x = quiet * moduleW;
+  var rects = "";
+  for (var m = 0; m < values.length; m++) {
+    var pat = CODE128[values[m]];
+    var isBar = true;
+    for (var n = 0; n < pat.length; n++) {
+      var w = (+pat[n]) * moduleW;
+      if (isBar) rects += '<rect x="' + x + '" y="0" width="' + w + '" height="' + height + '"/>';
+      x += w;
+      isBar = !isBar;
+    }
+  }
+  return '<svg viewBox="0 0 ' + width + ' ' + height + '" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">' +
+         '<rect x="0" y="0" width="' + width + '" height="' + height + '" fill="#fff"/>' +
+         '<g fill="#000">' + rects + '</g></svg>';
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) {
+  return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+}); }
+
+function randomCode(len) {
+  // No ambiguous characters (no O/0, I/1), so the printed code is easy to read.
+  var alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  var bytes = new Uint32Array(len);
+  crypto.getRandomValues(bytes);
+  var s = "";
+  for (var i = 0; i < len; i++) s += alphabet[bytes[i] % alphabet.length];
+  return s;
+}
+
+function generate() {
+  var biz = document.getElementById("biz").value || "";
+  var prefix = document.getElementById("prefix").value || "";
+  var start = parseInt(document.getElementById("start").value, 10) || 0;
+  var count = Math.max(1, Math.min(2000, parseInt(document.getElementById("count").value, 10) || 1));
+  var digits = Math.max(1, Math.min(10, parseInt(document.getElementById("digits").value, 10) || 1));
+  var note = document.getElementById("note").value || "";
+  var format = document.getElementById("format").value;
+
+  var seen = {};
+  var out = [];
+  for (var i = 0; i < count; i++) {
+    var code;
+    if (format === "uuid") {
+      do { code = (crypto.randomUUID ? crypto.randomUUID() : randomCode(32)).toUpperCase(); } while (seen[code]);
+    } else if (format === "random") {
+      do { code = prefix + randomCode(8); } while (seen[code]);
+    } else {
+      var num = String(start + i);
+      while (num.length < digits) num = "0" + num;
+      code = prefix + num;
+    }
+    seen[code] = true;
+    out.push(
+      '<div class="card">' +
+        '<div class="biz">' + esc(biz) + '</div>' +
+        '<div class="barcode">' + code128Svg(code) + '</div>' +
+        '<div class="code">' + esc(code) + '</div>' +
+        (note ? '<div class="note">' + esc(note) + '</div>' : '') +
+      '</div>'
+    );
+  }
+  document.getElementById("cards").innerHTML = out.join("");
+  document.getElementById("count-note").textContent = count + " cards ready";
+}
+
+document.getElementById("gen").addEventListener("click", generate);
+generate();
+</script>
+</body>
+</html>

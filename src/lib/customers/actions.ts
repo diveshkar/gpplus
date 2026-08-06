@@ -76,8 +76,67 @@ export async function createCustomer(
     return { error: "Something went wrong saving this customer. Please try again.", values };
   }
 
+  // If this card came from the printed pool, mark it assigned. Best-effort: a
+  // manually typed code simply matches nothing here.
+  if (values.barcode_id) {
+    await supabase
+      .from("cards")
+      .update({
+        status: "assigned",
+        customer_id: data.id,
+        assigned_at: new Date().toISOString(),
+      })
+      .eq("code", values.barcode_id)
+      .eq("status", "unused");
+  }
+
   revalidatePath("/customers");
   redirect(`/customers/${data.id}?toast=customer_saved`);
+}
+
+/**
+ * Update an existing customer's details. The card (barcode) is not changed here;
+ * that is handled by the lost-card and replacement flow.
+ */
+export async function updateCustomer(
+  _prev: CustomerFormState,
+  formData: FormData,
+): Promise<CustomerFormState> {
+  const id = String(formData.get("customer_id") ?? "");
+  const values = readCustomerForm(formData);
+
+  if (!id) {
+    return { error: "Missing the customer.", values };
+  }
+  if (!values.full_name) {
+    return { error: "Please enter the customer's full name.", values };
+  }
+  if (!values.default_paint_type_id) {
+    return { error: "Please choose a category.", values };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("customers")
+    .update({
+      full_name: values.full_name,
+      address: values.address || null,
+      date_of_birth: values.date_of_birth || null,
+      phone_number: values.phone_number || null,
+      default_paint_type_id: values.default_paint_type_id,
+    })
+    .eq("id", id);
+
+  if (error) {
+    return {
+      error: "Something went wrong saving this customer. Please try again.",
+      values,
+    };
+  }
+
+  revalidatePath(`/customers/${id}`);
+  revalidatePath("/customers");
+  redirect(`/customers/${id}?toast=customer_saved`);
 }
 
 export type ReassignState = {
@@ -101,6 +160,15 @@ export async function reassignBarcode(
   }
 
   const supabase = await createClient();
+
+  // Remember the card being replaced, so we can mark it lost.
+  const { data: existing } = await supabase
+    .from("customers")
+    .select("barcode_id")
+    .eq("id", customerId)
+    .maybeSingle();
+  const oldBarcode = existing?.barcode_id ?? null;
+
   const { error } = await supabase
     .from("customers")
     .update({ barcode_id: barcode })
@@ -111,6 +179,26 @@ export async function reassignBarcode(
       return { error: "That card is already linked to another customer." };
     }
     return { error: "Could not link the new card. Please try again." };
+  }
+
+  // If the replacement card is from the printed pool, mark it assigned.
+  await supabase
+    .from("cards")
+    .update({
+      status: "assigned",
+      customer_id: customerId,
+      assigned_at: new Date().toISOString(),
+    })
+    .eq("code", barcode)
+    .eq("status", "unused");
+
+  // Retire the old card in the pool, if it was one.
+  if (oldBarcode && oldBarcode !== barcode) {
+    await supabase
+      .from("cards")
+      .update({ status: "lost" })
+      .eq("code", oldBarcode)
+      .eq("status", "assigned");
   }
 
   revalidatePath(`/customers/${customerId}`);

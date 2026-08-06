@@ -87,6 +87,28 @@ function MenuIcon() {
   );
 }
 
+function CardIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="14"
+        rx="2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+      />
+      <path
+        d="M3 10h18M7 15h4"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5" aria-hidden>
@@ -112,6 +134,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", icon: <DashboardIcon /> },
   { href: "/customers", label: "Customers", icon: <PeopleIcon /> },
   { href: "/customers/new", label: "Add customer", icon: <AddPersonIcon /> },
+  { href: "/cards", label: "Cards", icon: <CardIcon /> },
   { href: "/settings", label: "Settings", icon: <SettingsIcon /> },
 ];
 
@@ -324,9 +347,11 @@ export function AppShell({
           </button>
         </header>
 
+        {/* Use fade (no transform); a transform here would trap the fixed
+            full-screen loading overlay inside main instead of the viewport. */}
         <main
           key={pathname}
-          className="w-full flex-1 animate-fade-up px-5 py-8 sm:px-8 lg:px-10"
+          className="w-full flex-1 animate-fade-in px-5 py-8 sm:px-8 lg:px-10"
         >
           {children}
         </main>

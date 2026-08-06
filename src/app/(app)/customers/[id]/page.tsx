@@ -9,6 +9,7 @@ import {
 } from "@/lib/transactions/queries";
 import { getCurrentOrganization } from "@/lib/organizations/queries";
 import { TransactionList } from "@/components/transactions/transaction-list";
+import { ReportLostButton } from "@/components/cards/report-lost-button";
 import { formatDate, formatLKR, formatPoints } from "@/lib/format";
 import { btnPrimary, btnSecondary, card } from "@/lib/ui";
 
@@ -61,6 +62,20 @@ export default async function CustomerProfilePage({
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-lg font-semibold text-brand-strong">
             {customer.full_name.charAt(0).toUpperCase()}
           </div>
+        }
+        actions={
+          <Link href={`/customers/${customer.id}/edit`} className={btnSecondary}>
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4" aria-hidden>
+              <path
+                d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"
+                stroke="currentColor"
+                strokeWidth="1.7"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Edit
+          </Link>
         }
       />
 
@@ -158,10 +173,17 @@ export default async function CustomerProfilePage({
             value={formatDate(customer.date_of_birth)}
           />
           <DetailRow label="Address" value={customer.address ?? "Not set"} />
-          <DetailRow
-            label="Card barcode"
-            value={customer.barcode_id ?? "No card linked"}
-          />
+          <div className="flex items-center justify-between gap-4 py-3">
+            <span className="text-sm text-muted">Card barcode</span>
+            <div className="flex items-center gap-3">
+              <span className="text-right text-sm font-medium text-foreground">
+                {customer.barcode_id ?? "No card linked"}
+              </span>
+              {customer.barcode_id ? (
+                <ReportLostButton customerId={customer.id} />
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
 
