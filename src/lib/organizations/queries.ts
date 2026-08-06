@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getProfile } from "@/lib/auth/profile";
-import type { Organization } from "@/lib/types";
+import type { Organization, PaintType } from "@/lib/types";
 
 /**
  * The signed-in org admin's own organization (its settings + branding).
@@ -104,4 +104,23 @@ export async function getOrganizationById(
 
   if (error) throw error;
   return (data as Organization) ?? null;
+}
+
+/**
+ * The categories (paint types) belonging to one organization, oldest first.
+ * For the super admin edit-org screen: RLS lets the super admin read any org's
+ * rows, so this returns exactly that org's categories.
+ */
+export async function getOrganizationCategories(
+  orgId: string,
+): Promise<PaintType[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("paint_types")
+    .select("*")
+    .eq("organization_id", orgId)
+    .order("created_at", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as PaintType[];
 }
