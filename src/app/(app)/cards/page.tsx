@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { getCardStats, getCardBatches } from "@/lib/cards/queries";
 import { getCurrentOrganization } from "@/lib/organizations/queries";
 import { GenerateCards } from "@/components/cards/generate-cards";
@@ -31,10 +32,16 @@ function StatTile({
 }
 
 export default async function CardsPage() {
-  const [stats, batches, org] = await Promise.all([
+  // The card feature is opt-in per business (super admin controlled). If it is
+  // off, this area is hidden from the nav, so also block a direct visit here.
+  const org = await getCurrentOrganization();
+  if (!org.cards_enabled) {
+    redirect("/");
+  }
+
+  const [stats, batches] = await Promise.all([
     getCardStats(),
     getCardBatches(),
-    getCurrentOrganization(),
   ]);
 
   return (

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { logout } from "@/lib/auth/actions";
 import { ScanModal } from "@/components/shell/scan-modal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -158,6 +158,7 @@ export function AppShell({
   config,
   logoUrl,
   brandColor,
+  cardsEnabled,
   children,
 }: {
   userEmail: string;
@@ -166,9 +167,14 @@ export function AppShell({
   config: ScanConfig;
   logoUrl: string | null;
   brandColor?: string;
+  cardsEnabled: boolean;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // The Cards area is an opt-in feature the super admin controls per business.
+  const navItems = cardsEnabled
+    ? NAV_ITEMS
+    : NAV_ITEMS.filter((item) => item.href !== "/cards");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [pendingBarcode, setPendingBarcode] = useState<string | null>(null);
@@ -186,12 +192,14 @@ export function AppShell({
     setPendingBarcode(null);
   }
 
-  // Auto-open the scan popup when a hardware scanner fires and no field is focused.
-  const handleGlobalScan = useCallback((code: string) => {
+  // Auto-open the scan popup when a hardware scanner fires and no field is
+  // focused. React Compiler keeps this stable, so the scanner effect is not
+  // re-subscribed on every render.
+  function handleGlobalScan(code: string) {
     setDrawerOpen(false);
     setPendingBarcode(code);
     setScanOpen(true);
-  }, []);
+  }
   useGlobalScanner(handleGlobalScan);
 
   const sidebar = (
@@ -218,7 +226,7 @@ export function AppShell({
       </button>
 
       <nav className="flex flex-1 flex-col gap-1.5">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active = isActive(pathname, item.href);
           return (
             <Link

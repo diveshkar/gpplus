@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getProfile } from "@/lib/auth/profile";
 
 export type LoginState = {
   error: string | null;
@@ -33,8 +34,22 @@ export async function login(
     return { error: "That email and password did not match. Please try again." };
   }
 
+  // Send each role straight to its own home. The super admin used to land on "/"
+  // (the shop layout), which then redirected to "/admin" — that extra hop, right
+  // after the session cookie was set, intermittently failed on the first load
+  // and only worked after a manual refresh. Routing directly avoids the bounce.
+  // If the profile lookup fails for any reason, fall back to "/"; the layouts
+  // still guard and re-route from there, so sign-in itself never gets blocked.
+  let destination = "/?toast=logged_in";
+  try {
+    const profile = await getProfile();
+    if (profile?.role === "super_admin") destination = "/admin";
+  } catch {
+    // Ignore and use the default; the app-layout guard will redirect if needed.
+  }
+
   // redirect throws internally, so it must sit outside any try/catch.
-  redirect("/?toast=logged_in");
+  redirect(destination);
 }
 
 /**
