@@ -30,6 +30,7 @@ export function EditOrgForm({ org }: { org: Organization }) {
     initialState,
   );
   const [brandColor, setBrandColor] = useState(org.brand_color || DEFAULT_BRAND);
+  const [cardsEnabled, setCardsEnabled] = useState(org.cards_enabled);
 
   useEffect(() => {
     if (state.success) toast.success("Organization saved");
@@ -129,6 +130,27 @@ export function EditOrgForm({ org }: { org: Organization }) {
             className={input}
           />
         </div>
+      </div>
+
+      {/* Optional features */}
+      <div className="flex flex-col gap-2 border-t border-border pt-5">
+        <span className={label}>Features</span>
+        <label className="flex items-start gap-2.5">
+          <input
+            type="checkbox"
+            name="cards_enabled"
+            checked={cardsEnabled}
+            onChange={(event) => setCardsEnabled(event.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-border text-brand focus:ring-brand"
+          />
+          <span className="text-sm text-foreground">
+            Loyalty cards
+            <span className="mt-0.5 block text-xs font-normal text-muted">
+              Lets this business design and generate printable loyalty cards.
+              When off, the Cards area is hidden from them.
+            </span>
+          </span>
+        </label>
       </div>
 
       {state.error ? (

@@ -57,6 +57,7 @@ export default async function AppLayout({
       }}
       logoUrl={org.logo_url}
       brandColor={org.brand_color}
+      cardsEnabled={org.cards_enabled}
     >
       {children}
     </AppShell>

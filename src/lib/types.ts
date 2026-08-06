@@ -58,6 +58,7 @@ export type Organization = {
   redemption_threshold: number;
   redemption_value: number;
   active: boolean;
+  cards_enabled: boolean;
   card_title: string | null;
   card_tagline: string | null;
   card_back_enabled: boolean;

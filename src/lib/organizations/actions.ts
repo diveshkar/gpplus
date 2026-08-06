@@ -88,6 +88,9 @@ export async function createOrganization(
   const supabase = await createClient();
   const admin = createAdminClient();
 
+  // The card feature is opt-in: only on if the super admin ticked the box.
+  const cardsEnabled = formData.get("cards_enabled") === "on";
+
   // 1. Create the organization (RLS allows this for the super admin).
   const { data: org, error: orgError } = await supabase
     .from("organizations")
@@ -97,6 +100,7 @@ export async function createOrganization(
       brand_color: values.brand_color,
       redemption_threshold: threshold,
       redemption_value: value,
+      cards_enabled: cardsEnabled,
     })
     .select("id")
     .single();
@@ -256,6 +260,8 @@ export async function updateOrganization(
     return fail("Please enter a redemption value greater than zero.");
   }
 
+  const cardsEnabled = formData.get("cards_enabled") === "on";
+
   const supabase = await createClient();
   const { error } = await supabase
     .from("organizations")
@@ -266,6 +272,7 @@ export async function updateOrganization(
       logo_url: values.logo_url || null,
       redemption_threshold: threshold,
       redemption_value: value,
+      cards_enabled: cardsEnabled,
     })
     .eq("id", id);
 
