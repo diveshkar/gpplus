@@ -179,7 +179,9 @@ export default async function CustomerProfilePage({
               <span className="text-right text-sm font-medium text-foreground">
                 {customer.barcode_id ?? "No card linked"}
               </span>
-              {customer.barcode_id ? (
+              {/* "Report lost" replaces a card, so it belongs to the card
+                  feature — only offer it when that feature is enabled. */}
+              {customer.barcode_id && config.cards_enabled ? (
                 <ReportLostButton customerId={customer.id} />
               ) : null}
             </div>

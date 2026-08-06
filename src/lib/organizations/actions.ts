@@ -347,6 +347,131 @@ export async function resetOrgAdminPassword(
   return { error: null, success: true };
 }
 
+// -----------------------------------------------------------------------------
+// Categories, managed from the super admin edit-org screen.
+//
+// The org-side settings actions cannot be reused here: they let the database
+// trigger stamp organization_id from the caller, which for a super admin (who
+// belongs to no org) would be null. These pass the target org explicitly, which
+// the trigger leaves untouched and the paint_types RLS policy allows for a
+// super admin.
+// -----------------------------------------------------------------------------
+
+export type AdminCategoryState = {
+  error: string | null;
+  success: boolean;
+  values: { name: string; earning_percentage: string };
+};
+
+function parseCategory(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const raw = String(formData.get("earning_percentage") ?? "").trim();
+  const percentage = Number(raw);
+  return { name, raw, percentage };
+}
+
+/** Add a category to a specific organization. Super-admin only. */
+export async function adminCreateCategory(
+  orgId: string,
+  _prev: AdminCategoryState,
+  formData: FormData,
+): Promise<AdminCategoryState> {
+  const { name, raw, percentage } = parseCategory(formData);
+  const values = { name, earning_percentage: raw };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") {
+    return { error: "You are not allowed to do this.", success: false, values };
+  }
+  if (!orgId) return { error: "Missing the organization.", success: false, values };
+  if (!name) return { error: "Please enter a name.", success: false, values };
+  if (raw === "" || Number.isNaN(percentage) || percentage < 0) {
+    return {
+      error: "Please enter a percentage of zero or more.",
+      success: false,
+      values,
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("paint_types")
+    .insert({ name, earning_percentage: percentage, organization_id: orgId });
+
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        error: "A category with that name already exists.",
+        success: false,
+        values,
+      };
+    }
+    return { error: "Could not add the category. Please try again.", success: false, values };
+  }
+
+  revalidatePath(`/admin/${orgId}/edit`);
+  return { error: null, success: true, values: { name: "", earning_percentage: "" } };
+}
+
+/** Rename a category or change its rate. Super-admin only. */
+export async function adminUpdateCategory(
+  orgId: string,
+  categoryId: string,
+  _prev: AdminCategoryState,
+  formData: FormData,
+): Promise<AdminCategoryState> {
+  const { name, raw, percentage } = parseCategory(formData);
+  const values = { name, earning_percentage: raw };
+
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") {
+    return { error: "You are not allowed to do this.", success: false, values };
+  }
+  if (!categoryId) return { error: "Missing the category.", success: false, values };
+  if (!name) return { error: "Please enter a name.", success: false, values };
+  if (raw === "" || Number.isNaN(percentage) || percentage < 0) {
+    return {
+      error: "Please enter a percentage of zero or more.",
+      success: false,
+      values,
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("paint_types")
+    .update({ name, earning_percentage: percentage })
+    .eq("id", categoryId);
+
+  if (error) {
+    if (error.code === "23505") {
+      return {
+        error: "A category with that name already exists.",
+        success: false,
+        values,
+      };
+    }
+    return { error: "Could not save the category. Please try again.", success: false, values };
+  }
+
+  revalidatePath(`/admin/${orgId}/edit`);
+  return { error: null, success: true, values };
+}
+
+/** Remove a category from an organization. Super-admin only. */
+export async function adminDeleteCategory(
+  orgId: string,
+  categoryId: string,
+): Promise<void> {
+  const profile = await getProfile();
+  if (!profile || profile.role !== "super_admin") return;
+  if (!categoryId) return;
+
+  const supabase = await createClient();
+  await supabase.from("paint_types").delete().eq("id", categoryId);
+  revalidatePath(`/admin/${orgId}/edit`);
+}
+
 /**
  * Permanently delete an organization: its customers, transactions, categories,
  * and its admin login all go with it. Super-admin only, and irreversible.

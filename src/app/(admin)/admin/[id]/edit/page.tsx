@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getOrganizationById } from "@/lib/organizations/queries";
+import {
+  getOrganizationById,
+  getOrganizationCategories,
+} from "@/lib/organizations/queries";
 import { EditOrgForm } from "@/components/admin/edit-org-form";
+import { OrgCategoriesForm } from "@/components/admin/org-categories-form";
 import { ResetOrgPasswordForm } from "@/components/admin/reset-org-password-form";
 import { card } from "@/lib/ui";
 
@@ -16,6 +20,8 @@ export default async function EditOrganizationPage({
   if (!org) {
     notFound();
   }
+
+  const categories = await getOrganizationCategories(id);
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
@@ -44,13 +50,24 @@ export default async function EditOrganizationPage({
           Edit {org.name}
         </h1>
         <p className="mt-1 text-sm text-muted">
-          Update this business's name, branding, and loyalty settings.
+          Update this business&apos;s name, branding, and loyalty settings.
         </p>
       </div>
 
       <div className={`${card} p-6`}>
         <EditOrgForm org={org} />
       </div>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="text-sm font-semibold text-foreground">Categories</h2>
+        <p className="text-sm text-muted">
+          The kinds of products or services this business sells, and the points
+          each earns. The business can also change these from their own settings.
+        </p>
+        <div className={`${card} px-6`}>
+          <OrgCategoriesForm orgId={org.id} categories={categories} />
+        </div>
+      </section>
 
       <section className="flex flex-col gap-3">
         <h2 className="text-sm font-semibold text-foreground">
