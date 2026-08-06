@@ -8,6 +8,7 @@ import {
   type CreateOrgState,
 } from "@/lib/organizations/actions";
 import { PasswordInput } from "@/components/ui/password-input";
+import { LogoUpload } from "@/components/ui/logo-upload";
 import { btnPrimary, errorAlert, input, label } from "@/lib/ui";
 
 const DEFAULT_BRAND = "#c1121f";
@@ -89,6 +90,12 @@ export function CreateOrgForm() {
           className={input}
         />
       </div>
+
+      <LogoUpload
+        name="logo_url"
+        initialUrl=""
+        helpText="Shown in their dashboard, sidebar, and on printed cards. Optional — a default mark is used if left empty."
+      />
 
       <div className="flex flex-col gap-1.5">
         <span className={label}>Brand colour</span>
